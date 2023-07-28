@@ -6,6 +6,7 @@ import {Route, Routes, Navigate} from "react-router-dom";
 import {Page, SkipToContent} from "@patternfly/react-core";
 import {privateRoutes, publicRoutes} from "../routes/routes";
 import {observer} from "mobx-react";
+import Sidebar from "./Sidebar";
 
 
 const AppRouter: FC = () => {
@@ -18,11 +19,10 @@ const AppRouter: FC = () => {
         }
     }, [])
 
-
     return (
         auth.isAuth
             ?
-            <Page header={<Header />} isManagedSidebar skipToContent={pageSkipToContent}
+            <Page header={<Header />} sidebar={<Sidebar />} isManagedSidebar skipToContent={pageSkipToContent}
                   mainContainerId={mainContainerId} isBreadcrumbWidthLimited breadcrumbProps={{
                 stickyOnBreakpoint: {
                     md: 'top'
