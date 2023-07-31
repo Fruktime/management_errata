@@ -16,23 +16,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {ReactElement} from "react";
-import LoginPageHideShowPassword from "../views/Login";
-import Home from "../views/Home";
-import ErrataList from "../views/ErrataList";
+import {IErrataPackages} from "./IErrataPackages";
 
-
-interface Routes {
-    path: string;
-    element: ReactElement;
+export interface IVulnerabilities {
+    number: string;
+    type: "errata" | "vuln" | "bug";
 }
 
-export const privateRoutes = [
-    // {path: '/packages-cpe', element: <PackageCpeList />, exact: true},
-    {path: '/errata', element: <ErrataList />, exact: true},
-    {path: '/', element: <Home />},
-]
+export interface ErrataListElement {
+    errata_id: string;
+    eh_type: string;
+    task_id: Number;
+    changed: string;
+    branch: string;
+    packages: Array<IErrataPackages>
+    vulnerabilities: Array<IVulnerabilities>
+}
 
-export const publicRoutes: Routes[] = [
-    { path: '/login', element: <LoginPageHideShowPassword />},
-]
+export interface ErrataListResponse {
+    request_args: any;
+    length: Number;
+    erratas: Array<ErrataListElement>
+}

@@ -16,23 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {ReactElement} from "react";
-import LoginPageHideShowPassword from "../views/Login";
-import Home from "../views/Home";
-import ErrataList from "../views/ErrataList";
-
-
-interface Routes {
-    path: string;
-    element: ReactElement;
+export interface IPageSizeOptions {
+    title: string;
+    value: number;
 }
-
-export const privateRoutes = [
-    // {path: '/packages-cpe', element: <PackageCpeList />, exact: true},
-    {path: '/errata', element: <ErrataList />, exact: true},
-    {path: '/', element: <Home />},
-]
-
-export const publicRoutes: Routes[] = [
-    { path: '/login', element: <LoginPageHideShowPassword />},
-]
