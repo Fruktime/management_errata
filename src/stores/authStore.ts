@@ -71,7 +71,7 @@ export default class authStore {
     async checkAuth() {
         this.setLoading(true);
         try {
-            const response = await axios.postForm<AuthResponse>(`${process.env.REACT_APP_API_URL}/cve${routes.refreshToken}`,
+            const response = await axios.postForm<AuthResponse>(`${process.env.REACT_APP_API_URL}${routes.refreshToken}`,
                 {
                     access_token: localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
                 }
