@@ -17,9 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import axios from "axios";
+import {routes} from "../routes/api-routes";
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL
+    baseURL: process.env.REACT_APP_API_URL,
+    withCredentials: true,
 });
 
 // Add a request interceptor
@@ -55,7 +57,7 @@ api.interceptors.response.use(
             if (error.response.status === 401 && !error.config._retry) {
                 try {
                     originalConfig._retry = true;
-                    const response = await axios.postForm(`${process.env.REACT_APP_API_URL}/cve/auth/refresh-token`, {
+                    const response = await axios.postForm(`${process.env.REACT_APP_API_URL}${routes.refreshToken}`, {
                             access_token: localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
                         }, {withCredentials: true}
                     )
