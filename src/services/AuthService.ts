@@ -19,12 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import {AuthResponse} from "../models/AuthResponse";
 import {AxiosResponse} from "axios";
 import api from "../http/api";
+import {routes} from "../routes/api-routes";
 
 export default class AuthService {
 
     static async login(nickname: string, password: string): Promise<AxiosResponse> {
         // user authentication request
-        return await api.postForm<AuthResponse>("/cve/auth/login", {
+        return await api.postForm<AuthResponse>(routes.logIn, {
             nickname: nickname,
             password: password
         })
@@ -32,7 +33,7 @@ export default class AuthService {
 
     static async logout(): Promise<void> {
         // user logout request
-        return await api.post("/cve/auth/logout", {}, {
+        return await api.post(routes.logOut, {}, {
             headers: {
                 Authorization: localStorage.getItem("accessToken")
             },
