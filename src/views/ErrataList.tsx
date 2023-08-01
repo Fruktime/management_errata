@@ -20,6 +20,7 @@ import React from "react";
 import Moment from 'moment';
 import {
     Bullseye,
+    Button,
     EmptyState,
     EmptyStateIcon,
     EmptyStateVariant,
@@ -29,6 +30,11 @@ import {
     Label,
     LabelGroup,
     MenuItem,
+    Modal,
+    ModalVariant,
+    OverflowMenu,
+    OverflowMenuGroup,
+    OverflowMenuItem,
     PageSection,
     Pagination,
     SearchInput,
@@ -40,7 +46,7 @@ import {
     ToolbarItem,
     ToolbarToggleGroup,
 } from "@patternfly/react-core";
-import {TableComposable, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {TFetch, useFetching} from "../hooks/useFetching";
 import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Loader from "../components/Loader";
@@ -63,6 +69,8 @@ function ErrataList() {
     const [validSearchText, setValidSearchText] = React.useState<string>('')
     const [filterBranch, setFilterBranch] = React.useState<string>('')
     const [branchList, setBranchList] = React.useState<Array<string>[]>([])
+    const [isNewErrataModal, setNewErrataModal] = React.useState<boolean>(false)
+    const [isNewErrata, setNewErrata] = React.useState<boolean>(false)
 
     const errataTypeToggleRef = React.useRef<MenuToggleElement>(null);
     const branchToggleRef = React.useRef<MenuToggleElement>(null);
@@ -217,6 +225,10 @@ function ErrataList() {
         }
     };
 
+    const handleModalToggle = () => {
+        setNewErrataModal(!isNewErrataModal)
+    }
+
     const NestedItems = ({data, columnKey}: {data: ErrataListElement, columnKey: "vulnerabilities" | "packages"}): React.ReactElement => {
         // return a LabelGroup with the names of affected packages or vulnerabilities errata
 
@@ -286,6 +298,21 @@ function ErrataList() {
         )
     };
 
+    const renderModal = (): React.ReactElement => {
+        return (
+            <Modal
+                width="75%"
+                height="75%"
+                variant={ModalVariant.small}
+                title="CreateErrata"
+                aria-label="Create errata"
+                isOpen={isNewErrataModal}
+                onClose={handleModalToggle}
+            >
+                <div></div>
+            </Modal>
+        )
+    };
 
     const renderRows = () => {
         if (errata.isLoading) {
@@ -332,7 +359,23 @@ function ErrataList() {
 
     return (
         <PageSection>
-            <Toolbar id="mixed-group-toolbar" clearAllFilters={clearAllFilters}>
+            <Toolbar id="actions-toolbar" className={"pf-v5-u-pb-0"}>
+                <ToolbarContent>
+                    <ToolbarItem variant="overflow-menu">
+                        <OverflowMenu breakpoint="md">
+                            <OverflowMenuGroup groupType="button" isPersistent>
+                                <OverflowMenuItem>
+                                    <Button variant="primary" onClick={handleModalToggle}>Create Errata</Button>
+                                </OverflowMenuItem>
+                            </OverflowMenuGroup>
+                        </OverflowMenu>
+                    </ToolbarItem>
+                    <ToolbarItem variant="pagination">
+                        <RenderPagination variant={PaginationVariant.top} isCompact={true}/>
+                    </ToolbarItem>
+                </ToolbarContent>
+            </Toolbar>
+            <Toolbar id="filters-toolbar" clearAllFilters={clearAllFilters}>
                 <ToolbarContent>
                     <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
                         <ToolbarGroup variant="filter-group">
@@ -367,12 +410,9 @@ function ErrataList() {
                             </HelperText>
                         </FormHelperText>
                     </ToolbarFilter>
-                    <ToolbarItem variant="pagination">
-                        <RenderPagination variant={PaginationVariant.top} isCompact={true}/>
-                    </ToolbarItem>
                 </ToolbarContent>
             </Toolbar>
-            <TableComposable variant={"compact"}>
+            <Table variant={"compact"} isStickyHeader>
                 <Thead>
                     <Tr>
                         <Th width={15}>{columnNames.errata}</Th>
@@ -383,8 +423,9 @@ function ErrataList() {
                     </Tr>
                 </Thead>
                 {renderRows()}
-            </TableComposable>
+            </Table>
             <RenderPagination variant={PaginationVariant.bottom} isCompact={false}/>
+            {renderModal()}
         </PageSection>
     )
 }
