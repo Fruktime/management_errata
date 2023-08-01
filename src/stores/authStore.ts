@@ -59,7 +59,7 @@ export default class authStore {
 
     async logout() {
         try {
-            const response = await AuthService.logout();
+            await AuthService.logout();
             localStorage.removeItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`);
             this.setAuth(false);
             this.setUser({} as IUser);
@@ -79,6 +79,7 @@ export default class authStore {
             localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, response.data.accessToken);
             this.setAuth(true);
         } catch (e) {
+            localStorage.removeItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
             this.setAuth(false)
             this.setUser({} as IUser)
         } finally {
