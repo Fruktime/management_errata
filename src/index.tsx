@@ -31,11 +31,11 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
-    <React.StrictMode>
+    // <React.StrictMode>
         <Router>
             <AuthProvide>
                 <App/>
             </AuthProvide>
         </Router>
-    </React.StrictMode>
+    // </React.StrictMode>
 );
