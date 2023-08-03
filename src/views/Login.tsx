@@ -36,10 +36,10 @@ const LoginPageHideShowPassword: FC = () => {
     const [isRememberMeChecked, setIsRememberMeChecked] = React.useState<boolean>(false);
     const {auth} = React.useContext(AuthContext);
 
-    const handleUsernameChange = (value: string) => {
+    const handleUsernameChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
         setUsername(value);
     };
-    const handlePasswordChange = (value: string) => {
+    const handlePasswordChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
         setPassword(value);
     };
     const onRememberMeClick = () => {

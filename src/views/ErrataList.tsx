@@ -70,7 +70,6 @@ function ErrataList() {
     const [filterBranch, setFilterBranch] = React.useState<string>('')
     const [branchList, setBranchList] = React.useState<Array<string>[]>([])
     const [isNewErrataModal, setNewErrataModal] = React.useState<boolean>(false)
-    const [isNewErrata, setNewErrata] = React.useState<boolean>(false)
 
     const errataTypeToggleRef = React.useRef<MenuToggleElement>(null);
     const branchToggleRef = React.useRef<MenuToggleElement>(null);
@@ -292,7 +291,7 @@ function ErrataList() {
                 onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
                 variant={variant}
                 titles={{
-                    paginationTitle: `${variant} pagination`
+                    paginationAriaLabel: `${variant} pagination`
                 }}
             />
         )
@@ -328,7 +327,7 @@ function ErrataList() {
                 <Tr>
                     <Td colSpan={6}>
                         <Bullseye>
-                            <EmptyState variant={EmptyStateVariant.small}>
+                            <EmptyState variant={EmptyStateVariant.sm}>
                                 <EmptyStateIcon icon={SearchIcon} />
                                 <Title headingLevel="h2" size="lg">
                                     No results found
@@ -402,13 +401,16 @@ function ErrataList() {
                             onClick={(event) => {checkInput((event.target as HTMLButtonElement).value)
                             }}
                         />
-                        <FormHelperText style={{"position": "absolute"}} component={"div"} isError={validSearch === "error"} isHidden={validSearch !== "error"}>
-                            <HelperText>
-                                <HelperTextItem isDynamic variant="error">
-                                    {validSearchText}
-                                </HelperTextItem>
-                            </HelperText>
-                        </FormHelperText>
+                        {validSearch === "error" && (
+                            <FormHelperText style={{"position": "absolute"}}>
+                                <HelperText>
+                                    <HelperTextItem isDynamic variant="error">
+                                        {validSearchText}
+                                    </HelperTextItem>
+                                </HelperText>
+                            </FormHelperText>
+                        )}
+
                     </ToolbarFilter>
                 </ToolbarContent>
             </Toolbar>

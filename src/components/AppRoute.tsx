@@ -1,5 +1,5 @@
 import React, {FC} from 'react';
-import {auth, AuthContext} from "../context/AuthProvide";
+import {AuthContext} from "../context/AuthProvide";
 import Header from "./Header";
 // import Sidebar from "./Sidebar";
 import {Route, Routes, Navigate} from "react-router-dom";
@@ -7,6 +7,7 @@ import {Page, SkipToContent} from "@patternfly/react-core";
 import {privateRoutes, publicRoutes} from "../routes/routes";
 import {observer} from "mobx-react";
 import Sidebar from "./Sidebar";
+import {IUser} from "../models/IUser";
 
 
 const AppRouter: FC = () => {
@@ -14,8 +15,11 @@ const AppRouter: FC = () => {
     const mainContainerId = 'main-content';
     const pageSkipToContent = <SkipToContent href={`#${mainContainerId}`}>Skip to content</SkipToContent>;
     React.useEffect(() => {
-        if (localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`) && !auth.isAccessTokenExpired()) {
+        if (localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)) {
             auth.checkAuth()
+        } else {
+            auth.setAuth(false)
+            auth.setUser({} as IUser)
         }
     }, [])
 

@@ -35,10 +35,6 @@ export const useFetching = (callback: (...args: any[]) => any): TFetch => {
             await callback(...args)
             setError('')
         } catch (e) {
-            // if (e.response.status === 401) {
-            //     Auth.removeAccessToken()
-            //     setIsAuth(false)
-            // };;
             setError(e.message);
         } finally {
             setIsLoading(false)

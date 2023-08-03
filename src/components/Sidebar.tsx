@@ -17,40 +17,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import React from 'react';
-import {Nav, NavList, PageContextConsumer, PageSidebar} from "@patternfly/react-core";
-import globalBreakpointXl from "@patternfly/react-tokens/dist/esm/global_breakpoint_xl";
+import {Nav, NavItem, NavList, PageSidebar, PageSidebarBody} from "@patternfly/react-core";
 import {NavLink} from "react-router-dom";
 
-const NavItem = ({ text, href }: {text: string, href: string}) => {
-    const isMobileView = window.innerWidth < Number.parseInt(globalBreakpointXl.value, 10);
-    const setActive = ({ isActive }: {isActive: boolean}) => (isActive ? "pf-c-nav__link pf-m-current" : "pf-c-nav__link");
-
-    return (
-        <PageContextConsumer key={href + text}>
-            {({onNavToggle, isNavOpen }) => (
-                <li key={href + text} className="pf-c-nav__item" onClick={() => isMobileView && onNavToggle()}>
-                    <NavLink
-                        to={href}
-                        className={setActive}
-                        tabIndex={isNavOpen ? undefined : -1}
-                    >
-                        {text}
-                    </NavLink>
-                </li>
-            )}
-        </PageContextConsumer>
-    )
-};
+interface NavOnSelectProps {
+    groupId: number | string;
+    itemId: number | string;
+    to: string;
+}
 
 export default function Sidebar() {
+    const setActive = ({isActive}: { isActive: boolean }): string => (isActive ? "pf-v5-c-nav__link pf-m-current" : "pf-v5-c-nav__link");
+    //
+    // const onNavSelect = (_event: React.FormEvent<HTMLInputElement>, selectedItem: NavOnSelectProps) => {
+    //     typeof selectedItem.itemId === 'number' && setActiveItem(selectedItem.itemId);
+    // };
+
     const pageNav = <Nav aria-label="Side Nav">
         <NavList>
-            <NavItem text={"Home page"} href={"/"} />
-            <NavItem text={"Errata"} href={"/errata"} />
+            <NavLink
+                to={"/"}
+                id={"home-page_nav-link"}
+                className={setActive}
+                // tabIndex={isNavOpen ? undefined : -1}
+            >
+                Home page
+            </NavLink>
+            <NavLink
+                to={"/errata"}
+                id={"errata-list_nav-link"}
+                className={setActive}
+                // tabIndex={isNavOpen ? undefined : -1}
+            >
+                Errata
+            </NavLink>
         </NavList>
     </Nav>;
 
     return (
-        <PageSidebar nav={pageNav} id={"page-sidebar"}/>
+        <PageSidebar>
+            <PageSidebarBody>{pageNav}</PageSidebarBody>
+        </PageSidebar>
     );
 };

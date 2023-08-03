@@ -17,13 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import React from 'react';
-import {Bullseye, EmptyState, EmptyStateIcon, Spinner} from "@patternfly/react-core";
+import {Bullseye, EmptyState, EmptyStateHeader, EmptyStateIcon, Spinner} from "@patternfly/react-core";
 
 export default function Loader() {
     return (
         <Bullseye>
             <EmptyState>
-                <EmptyStateIcon variant="container" component={Spinner}/>
+                <EmptyStateHeader titleText="Loading" headingLevel="h4" icon={<EmptyStateIcon icon={Spinner} />} />
             </EmptyState>
         </Bullseye>
     );

@@ -28,6 +28,6 @@ export const routes: IApiRoutes = {
     logIn: "/auth/login",
     logOut: "/auth/logout",
     refreshToken: "/auth/refresh-token",
-    errataBranches: "/errata/branches",
-    errataList: "/errata/list",
+    errataBranches: "/errata/errata_branches",
+    errataList: "/errata/find_erratas",
 }

@@ -28,7 +28,6 @@ interface Routes {
 }
 
 export const privateRoutes = [
-    // {path: '/packages-cpe', element: <PackageCpeList />, exact: true},
     {path: '/errata', element: <ErrataList />, exact: true},
     {path: '/', element: <Home />},
 ]

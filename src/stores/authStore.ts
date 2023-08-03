@@ -74,9 +74,9 @@ export default class authStore {
             const response = await axios.postForm<AuthResponse>(`${process.env.REACT_APP_API_URL}${routes.refreshToken}`,
                 {
                     access_token: localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
-                }
+                }, {withCredentials: true}
             )
-            localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, response.data.accessToken);
+            localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, response.data.access_token);
             this.setAuth(true);
         } catch (e) {
             localStorage.removeItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
