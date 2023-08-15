@@ -1,4 +1,4 @@
-import React, {FC, ReactElement} from 'react';
+import React from 'react';
 import {
     Card,
     CardBody,
@@ -23,7 +23,7 @@ const EmptyStateBasic: IReactComponent = () => <EmptyState >
     </EmptyStateBody>
 </EmptyState>;
 
-const Home: FC = () => {
+const Home: React.FunctionComponent = () => {
     return (
         <PageSection isCenterAligned>
             <Card>

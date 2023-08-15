@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import React, {FC} from 'react';
+import React from 'react';
 import {LoginMainHeader, LoginForm, LoginMainBody, BackgroundImage} from '@patternfly/react-core';
 
 import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
@@ -26,7 +26,7 @@ import styles from "@patternfly/react-styles/css/components/Login/login";
 import {observer} from "mobx-react";
 
 
-const LoginPageHideShowPassword: FC = () => {
+const LoginPageHideShowPassword: React.FunctionComponent = () => {
     const [showHelperText, setShowHelperText] = React.useState<boolean>(false);
     const [helperText, setHelperText] = React.useState<string>('Invalid login credentials.');
     const [username, setUsername] = React.useState<string>('');

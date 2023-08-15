@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import React, {FC} from 'react';
+import React from 'react';
 import {
     Dropdown,
     DropdownItem,
@@ -37,7 +37,7 @@ import {observer} from "mobx-react";
 import {MenuToggleElement} from "@patternfly/react-core/components";
 import {EllipsisVIcon} from "@patternfly/react-icons";
 
-const Header: FC = () => {
+const Header: React.FunctionComponent = () => {
     const {auth} = React.useContext(AuthContext);
     const [isDropdownOpen, setIsDropdownOpen] = React.useState<boolean>(false);
     const [isFullKebabDropdownOpen, setIsFullKebabDropdownOpen] = React.useState<boolean>(false);

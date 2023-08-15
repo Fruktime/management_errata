@@ -28,7 +28,7 @@ interface Routes {
 }
 
 export const privateRoutes = [
-    {path: '/errata', element: <ErrataList />, exact: true},
+    {path: '/errata-list', element: <ErrataList />, exact: true},
     {path: '/', element: <Home />},
 ]
 

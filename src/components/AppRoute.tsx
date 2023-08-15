@@ -1,4 +1,4 @@
-import React, {FC} from 'react';
+import React from 'react';
 import {AuthContext} from "../context/AuthProvide";
 import Header from "./Header";
 // import Sidebar from "./Sidebar";
@@ -10,7 +10,7 @@ import Sidebar from "./Sidebar";
 import {IUser} from "../models/IUser";
 
 
-const AppRouter: FC = () => {
+const AppRouter: React.FunctionComponent = () => {
     const {auth} = React.useContext(AuthContext);
     const mainContainerId = 'main-content';
     const pageSkipToContent = <SkipToContent href={`#${mainContainerId}`}>Skip to content</SkipToContent>;
