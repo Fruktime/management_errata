@@ -19,22 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import {IErrataPackages} from "./IErrataPackages";
 
 export interface IVulnerabilities {
-    number: string;
+    id: string;
     type: "errata" | "vuln" | "bug";
 }
 
 export interface ErrataListElement {
     errata_id: string;
     eh_type: string;
-    task_id: Number;
+    task_id: number;
     changed: string;
     branch: string;
     packages: Array<IErrataPackages>
     vulnerabilities: Array<IVulnerabilities>
-}
-
-export interface ErrataListResponse {
-    request_args: any;
-    length: Number;
-    erratas: Array<ErrataListElement>
 }
