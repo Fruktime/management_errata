@@ -69,7 +69,7 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
     const renderMenu = (field: DropdownItem) => {
 
         return (
-            <Menu ref={field.menuRef} id={`mixed-group-${field.field}-menu`} onSelect={(event, itemId) => {
+            <Menu isScrollable ref={field.menuRef} id={`mixed-group-${field.field}-menu`} onSelect={(event, itemId) => {
                 onSelect({itemId, field})
             }} selected={field.filter}>
                 <MenuContent>
