@@ -65,7 +65,6 @@ api.interceptors.response.use(
                     originalConfig.headers["Authorization"] = localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
                     return api.request(originalConfig)
                 } catch (e) {
-                    console.log(originalConfig.url, e)
                     return Promise.reject(e)
                 }
             }
