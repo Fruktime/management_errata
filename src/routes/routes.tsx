@@ -20,6 +20,7 @@ import {ReactElement} from "react";
 import LoginPageHideShowPassword from "../views/Login";
 import Home from "../views/Home";
 import ErrataList from "../views/ErrataList";
+import TaskList from "../views/TaskList";
 
 
 interface Routes {
@@ -29,6 +30,7 @@ interface Routes {
 
 export const privateRoutes = [
     {path: '/errata-list', element: <ErrataList />, exact: true},
+    {path: '/tasks', element: <TaskList />, exact: true},
     {path: '/', element: <Home />},
 ]
 

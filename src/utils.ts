@@ -16,15 +16,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import React from 'react';
-import AppRouter from "./components/AppRoute";
-import {observer} from "mobx-react";
+import {IPageSizeOptions} from "./models/IPageSizeOptions";
 
-const App: React.FunctionComponent = () => {
-
-  return (
-      <AppRouter />
-  );
+export const errataLabelColor = (type: "errata" | "vuln" | "bug"): "blue" | "gold" | "red" | "grey" => {
+    // return color name for label
+    // param: type (string) - errata type
+    if (type === "bug") {
+        return "blue";
+    }
+    if (type === "errata") {
+        return "gold";
+    }
+    if (type === "vuln") {
+        return "red";
+    }
+    return "grey";
 }
 
-export default observer(App);
+export const pageSizeOptions: IPageSizeOptions[] = [
+    {title: "50", value: 50},
+    {title: "100", value: 100},
+    {title: "200", value: 200},
+]

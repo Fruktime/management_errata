@@ -20,6 +20,9 @@ import "@patternfly/patternfly/patternfly.min.css"
 import "@patternfly/patternfly/patternfly-addons.css"
 import "@patternfly/react-core/dist/styles/base.css";
 
+import "./styles/base.css"
+
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter as Router} from "react-router-dom";

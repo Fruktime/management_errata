@@ -1,0 +1,5 @@
+@media screen and (min-width: 992px) {
+    .toolbar-search-input {
+        width: 600px !important;
+    }
+}

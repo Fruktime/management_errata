@@ -22,6 +22,8 @@ interface IApiRoutes {
     refreshToken: string;
     errataBranches: string;
     errataList: string;
+    taskList: string
+    allTasksBranches: string
 }
 
 export const routes: IApiRoutes = {
@@ -30,4 +32,6 @@ export const routes: IApiRoutes = {
     refreshToken: "/auth/refresh-token",
     errataBranches: "/errata/errata_branches",
     errataList: "/errata/find_erratas",
+    taskList: "/management/task_list",
+    allTasksBranches: "/task/progress/all_tasks_branches"
 }
