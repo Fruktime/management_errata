@@ -18,9 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import {IPageSizeOptions} from "./models/IPageSizeOptions";
 
-export const errataLabelColor = (type: "errata" | "vuln" | "bug"): "blue" | "gold" | "red" | "grey" => {
-    // return color name for label
-    // param: type (string) - errata type
+type TLabelColors = (
+    "blue" | "gold" | "red" | "grey"
+)
+
+export const errataLabelColor = (type: "errata" | "vuln" | "bug"): TLabelColors => {
+    /*
+    Return color name for label.
+    */
     if (type === "bug") {
         return "blue";
     }
@@ -31,10 +36,24 @@ export const errataLabelColor = (type: "errata" | "vuln" | "bug"): "blue" | "gol
         return "red";
     }
     return "grey";
-}
+};
 
 export const pageSizeOptions: IPageSizeOptions[] = [
     {title: "50", value: 50},
     {title: "100", value: 100},
     {title: "200", value: 200},
 ]
+
+export const smartSplit = (text: string): string[] => {
+    /*
+    Convert quoted string literals to unquoted strings with escaped quotes and
+    backslashes unquoted.
+    */
+    const split_regex = /((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')[^\s'"]*)+)|\S+)/g;
+    const result = [];
+    let match;
+    while ((match = split_regex.exec(text)) !== null) {
+        result.push(match[0]);
+    }
+    return result;
+};
