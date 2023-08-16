@@ -50,7 +50,7 @@ import Loader from "../components/Loader";
 import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Moment from "moment/moment";
 import DropdownMenuItems, {DropdownItem} from "../components/UI/DropdownMenuItems";
-import {errataLabelColor, pageSizeOptions} from "../utils";
+import {errataLabelColor, pageSizeOptions, smartSplit} from "../utils";
 import {Link} from "react-router-dom";
 
 interface NestedItemsProps {
@@ -71,9 +71,9 @@ function TaskList() {
     const [totalCount, setTotalCount] = React.useState<number>(0);
 
     // filter by package set name
-    const [filterBranch, setFilterBranch] = React.useState<string>("")
+    const [filterBranch, setFilterBranch] = React.useState<string>('')
     // filter from search input
-    const [filterSearch, setFilterSearch] = React.useState<string[]>([])
+    const [filterSearch, setFilterSearch] = React.useState<string>('')
 
     const [validSearch, setValidSearch] = React.useState<string>('')
     const [validSearchText, setValidSearchText] = React.useState<string>('')
@@ -119,23 +119,22 @@ function TaskList() {
     ]
 
     const tasks: TFetch = useFetching(async (
-        pageSize,
-        page,
-        filterBranch,
-        filterSearch
+        pageSize: number,
+        page: number,
+        filterBranch: string,
+        filterSearch: string
     ) => {
         const response = await api.get(routes.taskList, {
             params: {
                 limit: pageSize,
                 page: page,
                 branch: filterBranch !== '' ? filterBranch : null,
-                input: filterSearch
+                input: filterSearch !== '' ? smartSplit(filterSearch).join(',') : null
             },
             paramsSerializer: {
                 indexes: null
             },
         });
-        console.log(response.data)
         if (response.data.tasks) {
             setTaskList(response.data.tasks)
             setTotalCount(Number(response.headers['x-total-count']))
@@ -168,37 +167,32 @@ function TaskList() {
 
     const clearAllFilters = () => {
         // clear all filters
-        setFilterSearch([])
+        setFilterSearch('')
         setFilterBranch("")
     }
 
     const checkInput = (val: string) => {
         // validation search input
-        if (val === "" || val === undefined) {
-            setValidSearch("default")
-            setValidSearchText("")
-        } else if (val.length < 2) {
+        const splitValue: string[] = smartSplit(val)
+        if (splitValue.length > 4) {
             setValidSearch("error")
-            setValidSearchText("The input should not be shorter than 2 characters")
-        } else if ((/^([\w.+\-_:@]{2,},?)+$/).test(val)) {
+            setValidSearchText("Input values list should contain no more than 4 elements")
+        } else if (splitValue.length === 0) {
             setValidSearch("success")
             setValidSearchText("")
-        } else {
-            setValidSearch("error")
-            setValidSearchText("The input must match: [a-zA-Z0-9-._:@+]")
         }
     }
 
     const onSearchInputChange = (newValue: string) => {
         // set the value in filterSearch when changing the text in the search field.
+        checkInput(newValue)
         if (newValue !== "") {
-            checkInput(newValue)
             if (validSearch !== "error") {
-                setFilterSearch([newValue])
+                setFilterSearch(newValue)
             }
         } else {
-            setFilterSearch([])
-            checkInput("")
+            setFilterSearch('')
+            checkInput('')
         }
     };
 
@@ -207,11 +201,10 @@ function TaskList() {
         if ('key' in event && event.key !== 'Enter') {
             return;
         }
-
         if (value) {
-            setFilterSearch([value])
+            setFilterSearch(value)
         } else {
-            setFilterSearch([])
+            setFilterSearch('')
         }
     };
 
@@ -235,7 +228,7 @@ function TaskList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((subtask, subIndex) => {
-                            if (filterSearch && filterSearch.some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
+                            if (filterSearch && filterSearch.split(' ').some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
                                 return (
                                     <Label
                                         key={`${data.task_id}-${subtask.subtask_id}-${subIndex}`}
@@ -333,9 +326,9 @@ function TaskList() {
                     </ToolbarToggleGroup>
                     <ToolbarFilter
                         key={"toolbar-search-tasks"}
-                        chips={filterSearch}
+                        chips={filterSearch !== '' ? [filterSearch] : []}
                         deleteChip={() => {
-                            setFilterSearch([])
+                            setFilterSearch('')
                         }}
                         categoryName="Search"
                         showToolbarItem={true}
@@ -343,11 +336,11 @@ function TaskList() {
                         <FormGroup>
                             <SearchInput
                                 className={"toolbar-search-input"}
-                                style={{"border-bottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
+                                style={{"borderBottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
                                 aria-label="Find tasks by #task ID, @owner, Errata ID, bug:bug number"
                                 placeholder="Find tasks by #task ID, @owner, Errata ID, bug:bug number"
                                 onChange={(_event, value) => onSearchInputChange(value)}
-                                value={filterSearch.slice(-1)[0]}
+                                value={filterSearch}
                                 onClear={() => {
                                     onSearchInputChange('');
                                 }}
