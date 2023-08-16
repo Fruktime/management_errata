@@ -20,21 +20,16 @@ import React from "react";
 import Moment from 'moment';
 import {
     Bullseye,
-    Button,
     EmptyState,
     EmptyStateIcon,
     EmptyStateVariant,
+    FormGroup,
     FormHelperText,
     HelperText,
     HelperTextItem,
     Label,
     LabelGroup,
     MenuItem,
-    Modal,
-    ModalVariant,
-    OverflowMenu,
-    OverflowMenuGroup,
-    OverflowMenuItem,
     PageSection,
     Pagination,
     SearchInput,
@@ -52,10 +47,16 @@ import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Loader from "../components/Loader";
 import {MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
 import {ErrataListElement} from "../models/ErrataListResponse";
-import {IPageSizeOptions} from "../models/IPageSizeOptions";
 import api from "../http/api";
 import DropdownMenuItems, {DropdownItem} from "../components/UI/DropdownMenuItems";
 import {routes} from "../routes/api-routes";
+import {errataLabelColor, pageSizeOptions} from "../utils";
+import {Link} from "react-router-dom";
+
+interface NestedItemsProps {
+    data: ErrataListElement;
+    columnKey: "vulnerabilities" | "packages"
+}
 
 function ErrataList() {
     const [errataList, setErrata] = React.useState<ErrataListElement[]>([])
@@ -68,8 +69,7 @@ function ErrataList() {
     const [validSearch, setValidSearch] = React.useState<string>('')
     const [validSearchText, setValidSearchText] = React.useState<string>('')
     const [filterBranch, setFilterBranch] = React.useState<string>('')
-    const [branchList, setBranchList] = React.useState<Array<string>[]>([])
-    const [isNewErrataModal, setNewErrataModal] = React.useState<boolean>(false)
+    const [branchList, setBranchList] = React.useState<string[]>([])
 
     const errataTypeToggleRef = React.useRef<MenuToggleElement>(null);
     const branchToggleRef = React.useRef<MenuToggleElement>(null);
@@ -78,15 +78,10 @@ function ErrataList() {
     const errataTypeContainerRef = React.useRef<MenuToggleElement>(null);
     const branchContainerRef = React.useRef<MenuToggleElement>(null);
 
-    const pageSizeOptions: IPageSizeOptions[] = [
-        {title: "50", value: 50},
-        {title: "100", value: 100},
-        {title: "200", value: 200},
-    ]
-
     const columnNames = {
         errata: 'Errata ID',
         branch: 'Branch',
+        task_id: 'Task ID',
         vulnerabilities: 'Vulnerabilities',
         packages: 'Affected packages',
         changed: 'Changed'
@@ -127,7 +122,7 @@ function ErrataList() {
         },
     ]
 
-    const errata: TFetch  = useFetching(async (
+    const errata: TFetch = useFetching(async (
         pageSize,
         page,
         filterBranch,
@@ -138,7 +133,7 @@ function ErrataList() {
             params: {
                 limit: pageSize,
                 page: page,
-                branch: filterBranch  !== '' ? filterBranch : null,
+                branch: filterBranch !== '' ? filterBranch : null,
                 type: filterType !== '' ? filterType : null,
                 input: filterSearch
             },
@@ -155,7 +150,7 @@ function ErrataList() {
         }
     })
 
-    const branches: TFetch = useFetching( async () => {
+    const branches: TFetch = useFetching(async () => {
         const response = await api.get(routes.errataBranches)
         if (response.data.branches) {
             setBranchList(response.data.branches)
@@ -211,7 +206,7 @@ function ErrataList() {
 
     };
 
-    const onNameInput = ({event, value}: {event: React.SyntheticEvent<HTMLButtonElement>, value: string}) => {
+    const onNameInput = ({event, value}: { event: React.SyntheticEvent<HTMLButtonElement>, value: string }) => {
         // set value in filterSearch when searching.
         if ('key' in event && event.key !== 'Enter') {
             return;
@@ -224,33 +219,14 @@ function ErrataList() {
         }
     };
 
-    const handleModalToggle = () => {
-        setNewErrataModal(!isNewErrataModal)
-    }
-
-    const NestedItems = ({data, columnKey}: {data: ErrataListElement, columnKey: "vulnerabilities" | "packages"}): React.ReactElement => {
+    const NestedItems: React.FunctionComponent<NestedItemsProps> = ({data, columnKey}): React.ReactElement => {
         // return a LabelGroup with the names of affected packages or vulnerabilities errata
-
-        const labelColor = (type: string) => {
-            // return color name for label
-            // param: type (string) - errata type
-            if (type === "bug") {
-                return "blue"
-            }
-            if (type === "errata") {
-                return "gold"
-            }
-            if (type === "vuln") {
-                return "red"
-            }
-            return "grey"
-        }
         if (columnKey === "vulnerabilities") {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
-                            return(
-                                <Label key={vuln.number} color={labelColor(vuln.type)}>{vuln.number}</Label>
+                            return (
+                                <Label key={vuln.id} color={errataLabelColor(vuln.type)}>{vuln.id}</Label>
                             )
                         }
                     )}
@@ -260,10 +236,17 @@ function ErrataList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((pkg, pkgIndex) => {
-                            return(
+                            return (
                                 <Label
-                                    href={"https://packages.altlinux.org/en/" + data.branch + "/srpms/" + pkg.pkg_name + "/" + pkg.pkghash} key={pkg.pkghash}
+                                    key={pkg.pkghash}
                                     color={"green"}
+                                    render={({className, content, componentRef}) => (
+                                        <Link
+                                            target="_blank"
+                                            to={`https://packages.altlinux.org/en/${data.branch}/srpms/${pkg.pkg_name}/${pkg.pkghash}`}
+                                            className={className}
+                                        >{content}</Link>
+                                    )}
                                 >{pkg.pkg_name}</Label>
                             )
                         }
@@ -273,51 +256,11 @@ function ErrataList() {
         }
     };
 
-    const RenderPagination = ({variant, isCompact}: {variant: PaginationVariant, isCompact: boolean}): React.ReactElement => {
-        // Return pagination component
-        // params:
-        // variant (top | bottom) - pagination position on the page
-        // isCompact (bool) - compact pagination
-        return (
-            <Pagination
-                isCompact={isCompact}
-                itemCount={totalCount}
-                widgetId="bottom-example"
-                usePageInsets={true}
-                page={page}
-                perPage={pageSize}
-                perPageOptions={pageSizeOptions}
-                onSetPage={(_evt, newPage) => setPage(newPage)}
-                onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
-                variant={variant}
-                titles={{
-                    paginationAriaLabel: `${variant} pagination`
-                }}
-            />
-        )
-    };
-
-    const renderModal = (): React.ReactElement => {
-        return (
-            <Modal
-                width="75%"
-                height="75%"
-                variant={ModalVariant.small}
-                title="CreateErrata"
-                aria-label="Create errata"
-                isOpen={isNewErrataModal}
-                onClose={handleModalToggle}
-            >
-                <div></div>
-            </Modal>
-        )
-    };
-
     const renderRows = () => {
         if (errata.isLoading) {
             return (
                 <Tr>
-                    <Td colSpan={6}>
+                    <Td colSpan={Object.keys(columnNames).length}>
                         <Loader/>
                     </Td>
                 </Tr>
@@ -325,10 +268,10 @@ function ErrataList() {
         } else if (errata.error) {
             return (
                 <Tr>
-                    <Td colSpan={6}>
+                    <Td colSpan={Object.keys(columnNames).length}>
                         <Bullseye>
                             <EmptyState variant={EmptyStateVariant.sm}>
-                                <EmptyStateIcon icon={SearchIcon} />
+                                <EmptyStateIcon icon={SearchIcon}/>
                                 <Title headingLevel="h2" size="lg">
                                     No results found
                                 </Title>
@@ -343,10 +286,21 @@ function ErrataList() {
                     return (
                         <Tbody key={errata.errata_id}>
                             <Tr>
-                                <Td component="th" dataLabel={columnNames.errata}><a href="#">{errata.errata_id}</a></Td>
+                                <Td component="th" dataLabel={columnNames.errata}><a
+                                    href="#">{errata.errata_id}</a></Td>
                                 <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
-                                <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata} columnKey={"vulnerabilities"}/></Td>
-                                <Td component="th" dataLabel={columnNames.packages}><NestedItems data={errata} columnKey={"packages"}/></Td>
+                                <Td component="th" dataLabel={columnNames.task_id}>{
+                                    errata.task_id ?
+                                        <a rel="noreferrer"
+                                           href={`https://packages.altlinux.org/ru/tasks/${errata.task_id}`}
+                                           target='_blank'
+                                        >{errata.task_id}</a> :
+                                        '-'
+                                }</Td>
+                                <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}
+                                                                                                        columnKey={"vulnerabilities"}/></Td>
+                                <Td component="th" dataLabel={columnNames.packages}><NestedItems data={errata}
+                                                                                                 columnKey={"packages"}/></Td>
                                 <Td dataLabel={columnNames.changed}>{Moment(errata.changed).format('D MMMM YYYY, h:mm:ss a')}</Td>
                             </Tr>
                         </Tbody>
@@ -358,60 +312,68 @@ function ErrataList() {
 
     return (
         <PageSection>
-            <Toolbar id="actions-toolbar" className={"pf-v5-u-pb-0"}>
-                <ToolbarContent>
-                    <ToolbarItem variant="overflow-menu">
-                        <OverflowMenu breakpoint="md">
-                            <OverflowMenuGroup groupType="button" isPersistent>
-                                <OverflowMenuItem>
-                                    <Button variant="primary" onClick={handleModalToggle}>Create Errata</Button>
-                                </OverflowMenuItem>
-                            </OverflowMenuGroup>
-                        </OverflowMenu>
-                    </ToolbarItem>
-                    <ToolbarItem variant="pagination">
-                        <RenderPagination variant={PaginationVariant.top} isCompact={true}/>
-                    </ToolbarItem>
-                </ToolbarContent>
-            </Toolbar>
             <Toolbar id="filters-toolbar" clearAllFilters={clearAllFilters}>
                 <ToolbarContent>
-                    <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+                    <ToolbarToggleGroup toggleIcon={<FilterIcon/>} breakpoint="xl">
                         <ToolbarGroup variant="filter-group">
                             <DropdownMenuItems items={selectFilters}/>
                         </ToolbarGroup>
                     </ToolbarToggleGroup>
                     <ToolbarFilter
                         key={"toolbar-search-errata"}
+                        className={"pf-v5-u-mr-0"}
                         chips={filterSearch}
-                        deleteChip={() => {setFilterSearch([])}}
+                        deleteChip={() => {
+                            setFilterSearch([])
+                        }}
                         categoryName="Search"
                         showToolbarItem={true}
                     >
-                        <SearchInput
-                            aria-label="Find errata"
-                            placeholder="Find errata by Errata ID, vulnerability ID or package name"
-                            onChange={(_event, value) => onSearchInputChange(value)}
-                            value={filterSearch.slice(-1)[0]}
-                            onClear={() => {
-                                onSearchInputChange('');
-                            }}
-                            onSearch={(event, value) => onNameInput({event, value})}
-                            onBlur={() => {checkInput("")}}
-                            onClick={(event) => {checkInput((event.target as HTMLButtonElement).value)
-                            }}
-                        />
-                        {validSearch === "error" && (
-                            <FormHelperText style={{"position": "absolute"}}>
-                                <HelperText>
-                                    <HelperTextItem isDynamic variant="error">
-                                        {validSearchText}
-                                    </HelperTextItem>
-                                </HelperText>
-                            </FormHelperText>
-                        )}
+                        <FormGroup>
+                            <SearchInput
+                                className={"toolbar-search-input"}
+                                style={{"border-bottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
+                                aria-label="Find errata by Errata ID, vulnerability ID or package name"
+                                placeholder="Find errata by Errata ID, vulnerability ID or package name"
+                                onChange={(_event, value) => onSearchInputChange(value)}
+                                value={filterSearch.slice(-1)[0]}
+                                onClear={() => {
+                                    onSearchInputChange('');
+                                }}
+                                onSearch={(event, value) => onNameInput({event, value})}
+                                onClick={(event) => {
+                                    checkInput((event.target as HTMLButtonElement).value)
+                                }}
+                            />
+                            {validSearch === "error" && (
+                                <FormHelperText>
+                                    <HelperText>
+                                        <HelperTextItem isDynamic variant="error">
+                                            {validSearchText}
+                                        </HelperTextItem>
+                                    </HelperText>
+                                </FormHelperText>
+                            )}
+                            </FormGroup>
 
                     </ToolbarFilter>
+                    <ToolbarItem variant="pagination">
+                        <Pagination
+                            isCompact={true}
+                            itemCount={totalCount}
+                            widgetId={`${PaginationVariant.top}-example`}
+                            usePageInsets={true}
+                            page={page}
+                            perPage={pageSize}
+                            perPageOptions={pageSizeOptions}
+                            onSetPage={(_evt, newPage) => setPage(newPage)}
+                            onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                            variant={PaginationVariant.top}
+                            titles={{
+                                paginationAriaLabel: `${PaginationVariant.top} pagination`
+                            }}
+                        />
+                    </ToolbarItem>
                 </ToolbarContent>
             </Toolbar>
             <Table variant={"compact"} isStickyHeader>
@@ -419,6 +381,7 @@ function ErrataList() {
                     <Tr>
                         <Th width={15}>{columnNames.errata}</Th>
                         <Th>{columnNames.branch}</Th>
+                        <Th>{columnNames.task_id}</Th>
                         <Th>{columnNames.vulnerabilities}</Th>
                         <Th>{columnNames.packages}</Th>
                         <Th width={15}>{columnNames.changed}</Th>
@@ -426,8 +389,21 @@ function ErrataList() {
                 </Thead>
                 {renderRows()}
             </Table>
-            <RenderPagination variant={PaginationVariant.bottom} isCompact={false}/>
-            {renderModal()}
+            <Pagination
+                isCompact={false}
+                itemCount={totalCount}
+                widgetId={`${PaginationVariant.bottom}-example`}
+                usePageInsets={true}
+                page={page}
+                perPage={pageSize}
+                perPageOptions={pageSizeOptions}
+                onSetPage={(_evt, newPage) => setPage(newPage)}
+                onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                variant={PaginationVariant.bottom}
+                titles={{
+                    paginationAriaLabel: `${PaginationVariant.bottom} pagination`
+                }}
+            />
         </PageSection>
     )
 }

@@ -16,22 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {IErrataPackages} from "./IErrataPackages";
-import {IVulnerabilities} from "./IVulnerabilities";
-
-export interface ErrataListElement {
-    /** Errata ID */
-    errata_id: string;
-    /** Errata type */
-    eh_type: string;
-    /** Task ID */
-    task_id: number;
-    /** Errata changed */
-    changed: string;
-    /** Package set name */
-    branch: string;
-    /** Affected packages from errata */
-    packages: IErrataPackages[]
-    /** Errata vulnerabilities */
-    vulnerabilities: IVulnerabilities[]
+export interface IVulnerabilities {
+    /** Vulnerability ID */
+    id: string;
+    /** Vulnerability type */
+    type: "errata" | "vuln" | "bug";
 }
