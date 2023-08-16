@@ -22,21 +22,42 @@ import FilterIcon from "@patternfly/react-icons/dist/esm/icons/filter-icon";
 
 
 export interface DropdownItem {
-        field: string,
-        name: string,
-        filter: any,
-        setFilter: any,
-        toggleRef: any,
-        menuRef: any,
-        containerRef: any,
-        cssStyle: React.CSSProperties,
-        menuItems: any
+    /** Field name */
+    field: string;
+    /** Field name for human */
+    name: string;
+    /** Filter state */
+    filter: any;
+    /** Function for set filter */
+    setFilter: (value: any) => void;
+    /**
+     * Allows getting a ref to the component instance.
+     * Once the component unmounts, React will set `ref.current` to `null` (or call the ref with `null` if you passed a callback ref).
+     * @see https://react.dev/learn/referencing-values-with-refs#refs-and-the-dom
+     */
+    toggleRef: any;
+    menuRef: any;
+    containerRef: any;
+    /** CSS styles */
+    cssStyle: React.CSSProperties,
+    /** Menu items */
+    menuItems: React.ReactNode[];
 }
 
-export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
+interface onToggleClickProps {
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent> | React.MouseEvent<HTMLDivElement, MouseEvent>;
+    field: DropdownItem;
+}
+
+interface onSelectProps {
+    itemId: string | number | undefined;
+    field: DropdownItem;
+}
+
+export default function DropdownMenuItems({items}: {items: DropdownItem[]}): React.ReactElement {
     const [isMenuOpen, setMenuOpen] = React.useState<{[key: string]: boolean}>({})
 
-    const onToggleClick = ({event, field}: {event: any, field: DropdownItem}) => {
+    const onToggleClick = ({event, field}: onToggleClickProps) => {
         event.stopPropagation();
         setTimeout(() => {
             if (field.menuRef.current) {
@@ -47,7 +68,7 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
         setMenuOpen({...isMenuOpen, [field.field]: !isMenuOpen[field.field]});
     };
 
-    function onSelect({itemId, field}: {itemId: string | number | undefined, field: DropdownItem}) {
+    const onSelect = ({itemId, field}: onSelectProps) => {
         if (typeof itemId === 'undefined') {
             return;
         }
@@ -57,9 +78,14 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
 
     const toggle = (field: DropdownItem) => {
         return (
-            <MenuToggle style={field.cssStyle} ref={field.toggleRef} onClick={(event) => {
-                onToggleClick({event, field})
-            }} isExpanded={isMenuOpen[field.field] ? isMenuOpen[field.field] : false} icon={<FilterIcon />}>
+            <MenuToggle
+                key={`menu-toggle-${field.field}`}
+                style={field.cssStyle}
+                ref={field.toggleRef}
+                onClick={(event) => {onToggleClick({event, field})}}
+                isExpanded={isMenuOpen[field.field] ? isMenuOpen[field.field] : false}
+                icon={<FilterIcon />}
+            >
                 {field.name}
             </MenuToggle>
         )
@@ -69,9 +95,14 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
     const renderMenu = (field: DropdownItem) => {
 
         return (
-            <Menu isScrollable ref={field.menuRef} id={`mixed-group-${field.field}-menu`} onSelect={(event, itemId) => {
-                onSelect({itemId, field})
-            }} selected={field.filter}>
+            <Menu
+                isScrollable
+                ref={field.menuRef}
+                id={`mixed-group-${field.field}-menu`}
+                key={`mixed-group-${field.field}-menu`}
+                onSelect={(event, itemId) => {onSelect({itemId, field})}}
+                selected={field.filter}
+            >
                 <MenuContent>
                     <MenuList>
                         {field.menuItems}
@@ -85,10 +116,19 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}) {
         <React.Fragment>
             {items.map((field, fieldIndex) => {
                 return (
-                    <ToolbarFilter chips={field.filter !== '' ? [field.filter] : []}
-                                   deleteChip={() => field.setFilter('')} categoryName={field.name}>
+                    <ToolbarFilter
+                        key={`toolbar-filter-${fieldIndex}`}
+                        chips={field.filter !== '' ? [field.filter] : []}
+                        deleteChip={() => field.setFilter('')}
+                        categoryName={field.name}
+                    >
                         <div ref={field.containerRef}>
-                            <Popper trigger={toggle(field)} popper={renderMenu(field)} appendTo={field.containerRef.current || undefined} isVisible={isMenuOpen[field.field] || false} />
+                            <Popper
+                                trigger={toggle(field)}
+                                popper={renderMenu(field)}
+                                appendTo={field.containerRef.current || undefined}
+                                isVisible={isMenuOpen[field.field] || false}
+                            />
                         </div>
                     </ToolbarFilter>
                 )
