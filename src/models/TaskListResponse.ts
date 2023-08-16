@@ -19,14 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import {IVulnerabilities} from "./IVulnerabilities";
 
 interface ISubtasks {
-    /** Task ID */
-    task_id: number;
     /** Subtask ID */
     subtask_id: number;
     /** Subtask type */
     subtask_type: string;
-    /** Subtask package from */
-    subtask_pkg_from: string;
     /** Subtask changed */
     subtask_changed: string;
     /** Item status type in subtask */
