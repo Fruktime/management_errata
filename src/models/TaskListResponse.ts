@@ -44,8 +44,8 @@ export interface TaskListElement {
     state: string;
     /** Task changed */
     changed: string;
-    /** Errata ID */
-    errata_id: string;
+    /** Errata ID list */
+    erratas: string[];
     /** Vulnerabilities list */
     vulnerabilities: IVulnerabilities[]
     /** Subtasks list */

@@ -21,7 +21,7 @@ import {TaskListElement} from "../models/TaskListResponse";
 import {TFetch, useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
-import {MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
+import {List, ListItem, MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
 import {
     Bullseye,
     EmptyState,
@@ -216,10 +216,17 @@ function TaskList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
+                        if (filterSearch && smartSplit(filterSearch).some(word => vuln.id.toLowerCase().includes(word.toLowerCase()))) {
+                            return (
+                                <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
+                                       color={"orange"}>{vuln.id}</Label>
+                            )
+                        } else {
                             return (
                                 <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
                                        color={errataLabelColor(vuln.type)}>{vuln.id}</Label>
                             )
+                        }
                         }
                     )}
                 </LabelGroup>
@@ -228,7 +235,7 @@ function TaskList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((subtask, subIndex) => {
-                            if (filterSearch && filterSearch.split(' ').some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
+                            if (filterSearch && smartSplit(filterSearch).some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
                                 return (
                                     <Label
                                         key={`${data.task_id}-${subtask.subtask_id}-${subIndex}`}
@@ -293,13 +300,20 @@ function TaskList() {
                     return (
                         <Tbody key={task.task_id}>
                             <Tr>
-                                <Td component="th" dataLabel={columnNames.task_id}><a rel={"noreferrer"} href="#">{task.task_id}</a></Td>
+                                <Td component="th" dataLabel={columnNames.task_id}><Link to={`/tasks/${task.task_id}`}>{task.task_id}</Link></Td>
                                 <Td component="th" dataLabel={columnNames.branch}>{task.branch}</Td>
                                 <Td component="th" dataLabel={columnNames.branch}><Link target={"_blank"} to={`https://packages.altlinux.org/en/${task.branch}/maintainers/${task.owner}/`}>{task.owner}</Link></Td>
                                 <Td component="th" dataLabel={columnNames.packages}><NestedItems data={task}
                                                                                                  columnKey={"subtasks"}/></Td>
                                 <Td component="th"
-                                    dataLabel={columnNames.errata_id}>{task.errata_id ? task.errata_id : "-"}</Td>
+                                    dataLabel={columnNames.errata_id}>{task.erratas ?
+                                    <List isPlain>
+                                        {task.erratas.map((errata, errataIndex) => {
+                                            return (
+                                                <ListItem><Link key={`${errata}-${errataIndex}`} to={'#'}>{errata}</Link></ListItem>
+                                            )
+                                        })}
+                                    </List> : "-"}</Td>
                                 <Td component="th" dataLabel={columnNames.vulnerabilities}>{
                                     task.vulnerabilities.length > 0 ?
                                         <NestedItems data={task} columnKey={"vulnerabilities"}/>
