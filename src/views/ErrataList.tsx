@@ -291,10 +291,7 @@ function ErrataList() {
                                 <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
                                 <Td component="th" dataLabel={columnNames.task_id}>{
                                     errata.task_id ?
-                                        <a rel="noreferrer"
-                                           href={`https://packages.altlinux.org/ru/tasks/${errata.task_id}`}
-                                           target='_blank'
-                                        >{errata.task_id}</a> :
+                                        <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> :
                                         '-'
                                 }</Td>
                                 <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}
@@ -332,7 +329,7 @@ function ErrataList() {
                         <FormGroup>
                             <SearchInput
                                 className={"toolbar-search-input"}
-                                style={{"border-bottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
+                                style={{"borderBottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
                                 aria-label="Find errata by Errata ID, vulnerability ID or package name"
                                 placeholder="Find errata by Errata ID, vulnerability ID or package name"
                                 onChange={(_event, value) => onSearchInputChange(value)}
