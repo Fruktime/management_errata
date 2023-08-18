@@ -23,6 +23,7 @@ interface IApiRoutes {
     errataBranches: string;
     errataList: string;
     taskList: string
+    taskInfo: string
     allTasksBranches: string
 }
 
@@ -33,5 +34,6 @@ export const routes: IApiRoutes = {
     errataBranches: "/errata/errata_branches",
     errataList: "/errata/find_erratas",
     taskList: "/management/task_list",
+    taskInfo: "/management/task_info",
     allTasksBranches: "/task/progress/all_tasks_branches"
 }

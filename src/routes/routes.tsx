@@ -21,6 +21,7 @@ import LoginPageHideShowPassword from "../views/Login";
 import Home from "../views/Home";
 import ErrataList from "../views/ErrataList";
 import TaskList from "../views/TaskList";
+import TaskInfo from "../views/TaskInfo";
 
 
 interface Routes {
@@ -31,6 +32,7 @@ interface Routes {
 export const privateRoutes = [
     {path: '/errata-list', element: <ErrataList />, exact: true},
     {path: '/tasks', element: <TaskList />, exact: true},
+    {path: '/tasks/:taskId', element: <TaskInfo />, exact: true},
     {path: '/', element: <Home />},
 ]
 
