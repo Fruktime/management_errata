@@ -35,6 +35,14 @@ interface ISubtasks {
     src_pkg_version: string;
     /** Source package release */
     src_pkg_release: string;
+    /** Package last changelog message */
+    chlog_text: string;
+    /** Package last changelog message date */
+    chlog_date: string;
+    /** Package last changelog name */
+    chlog_name: string;
+    /** Package last changelog evr */
+    chlog_evr: string;
     /** Errata ID */
     errata_id: string;
     /** Time and date of creation errata */

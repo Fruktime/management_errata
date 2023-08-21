@@ -31,7 +31,16 @@ import {
     DescriptionList,
     DescriptionListGroup,
     DescriptionListTerm,
-    DescriptionListDescription, Label, LabelGroup, Button, ActionList, ActionListItem, Icon
+    DescriptionListDescription,
+    Label,
+    LabelGroup,
+    Button,
+    ActionList,
+    ActionListItem,
+    Icon,
+    CardTitle,
+    CardFooter,
+    Breadcrumb, BreadcrumbItem
 } from "@patternfly/react-core";
 import {TFetch, useFetching} from "../hooks/useFetching";
 import api from "../http/api";
@@ -42,7 +51,7 @@ import {AddCircleOIcon, EditIcon, SearchIcon} from "@patternfly/react-icons";
 import {ITaskInfo} from "../models/TaskInfoResponse";
 import Loader from "../components/Loader";
 import Moment from "moment/moment";
-import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import {ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {IVulnerabilities} from "../models/IVulnerabilities";
 
 function TaskInfo() {
@@ -95,10 +104,10 @@ function TaskInfo() {
                             <Th></Th>
                         </Tr>
                     </Thead>
-                    <Tbody>
                     {info.subtasks.map((subtask, subIndex) => {
                         return (
-                                <Tr key={subtask.subtask_id}>
+                            <Tbody key={subtask.subtask_id} isExpanded>
+                                <Tr key={`${subtask.subtask_id}-subtask-info`}>
                                     <Td dataLabel="Subtask #">{subtask.subtask_id}</Td>
                                     <Td dataLabel="Package name">
                                         <Link
@@ -140,9 +149,19 @@ function TaskInfo() {
                                         </ActionList>
                                     </Td>
                                 </Tr>
+                                <Tr key={`${subtask.subtask_id}-changelog`} isExpanded className={"pf-v5-u-display-none pf-v5-u-display-table-row-on-md"}>
+                                    <Td dataLabel={`${subtask.src_pkg_name} changelog`} colSpan={8} className={"pf-v5-u-pt-0"}>
+                                        <ExpandableRowContent>
+                                            <Card isCompact>
+                                                <CardTitle>{Moment(subtask.chlog_date).format('D MMMM YYYY')} {subtask.chlog_name}</CardTitle>
+                                                <CardBody><pre>{subtask.chlog_text}</pre></CardBody>
+                                            </Card>
+                                        </ExpandableRowContent>
+                                    </Td>
+                                </Tr>
+                            </Tbody>
                         )
                     })}
-                    </Tbody>
                 </Table>
             )
         } else {
@@ -181,6 +200,10 @@ function TaskInfo() {
             return (
                 <React.Fragment>
                     <PageSection variant={PageSectionVariants.light} isWidthLimited>
+                        <Breadcrumb ouiaId="TaskBreadcrumb">
+                            <BreadcrumbItem to="/tasks">Tasks</BreadcrumbItem>
+                            <BreadcrumbItem isActive>Task #{taskId}</BreadcrumbItem>
+                        </Breadcrumb>
                         <TextContent>
                             <Text component="h1">Task #{info?.task_id} for {info?.task_repo} by <Link
                                 target={"_blank"}
