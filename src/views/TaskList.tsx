@@ -310,7 +310,7 @@ function TaskList() {
                                     <List isPlain>
                                         {task.erratas.map((errata, errataIndex) => {
                                             return (
-                                                <ListItem><Link key={`${errata}-${errataIndex}`} to={'#'}>{errata}</Link></ListItem>
+                                                <ListItem><Link key={`${errata}-${errataIndex}`} to={`/errata/${errata}/change`}>{errata}</Link></ListItem>
                                             )
                                         })}
                                     </List> : "-"}</Td>

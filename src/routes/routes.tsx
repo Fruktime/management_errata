@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theц
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
@@ -22,6 +22,7 @@ import Home from "../views/Home";
 import ErrataList from "../views/ErrataList";
 import TaskList from "../views/TaskList";
 import TaskInfo from "../views/TaskInfo";
+import ErrataChange from "../views/ErrataChange";
 
 
 interface Routes {
@@ -29,10 +30,11 @@ interface Routes {
     element: ReactElement;
 }
 
-export const privateRoutes = [
-    {path: '/errata-list', element: <ErrataList />, exact: true},
-    {path: '/tasks', element: <TaskList />, exact: true},
-    {path: '/tasks/:taskId', element: <TaskInfo />, exact: true},
+export const privateRoutes: Routes[] = [
+    {path: '/errata-list', element: <ErrataList />},
+    {path: '/tasks', element: <TaskList />},
+    {path: '/tasks/:taskId', element: <TaskInfo />},
+    {path: '/errata/:errataId/change', element: <ErrataChange />},
     {path: '/', element: <Home />},
 ]
 

@@ -286,8 +286,8 @@ function ErrataList() {
                     return (
                         <Tbody key={errata.errata_id}>
                             <Tr>
-                                <Td component="th" dataLabel={columnNames.errata}><a
-                                    href="#">{errata.errata_id}</a></Td>
+                                <Td component="th" dataLabel={columnNames.errata}><Link
+                                    to={`/errata/${errata.errata_id}/change`}>{errata.errata_id}</Link></Td>
                                 <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
                                 <Td component="th" dataLabel={columnNames.task_id}>{
                                     errata.task_id ?

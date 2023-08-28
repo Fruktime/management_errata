@@ -131,7 +131,13 @@ function TaskInfo() {
                                         <ActionList isIconList>
                                             {subtask.errata_id ?
                                                 <ActionListItem>
-                                                    <Button title="Edit errata" variant="plain" id="with-edit-errata-button" aria-label="edit errata button">
+                                                    <Button
+                                                        title="Edit errata"
+                                                        variant="plain"
+                                                        id="with-edit-errata-button"
+                                                        aria-label="edit errata button"
+                                                        component={(props: any) => <Link {...props} to={`/errata/${subtask.errata_id}/change`} />}
+                                                    >
                                                         <Icon size="md">
                                                             <EditIcon />
                                                         </Icon>
@@ -200,10 +206,6 @@ function TaskInfo() {
             return (
                 <React.Fragment>
                     <PageSection variant={PageSectionVariants.light} isWidthLimited>
-                        <Breadcrumb ouiaId="TaskBreadcrumb">
-                            <BreadcrumbItem to="/tasks">Tasks</BreadcrumbItem>
-                            <BreadcrumbItem isActive>Task #{taskId}</BreadcrumbItem>
-                        </Breadcrumb>
                         <TextContent>
                             <Text component="h1">Task #{info?.task_id} for {info?.task_repo} by <Link
                                 target={"_blank"}
