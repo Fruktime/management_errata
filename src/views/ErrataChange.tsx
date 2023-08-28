@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import React from 'react';
+import React from "react";
 import {
     Button,
     DescriptionList,
@@ -76,12 +76,12 @@ const ErrataChange = () => {
 
     // table column names
     const columnNames = {
-        is_valid: 'Valid',
-        id: 'Vulnerability ID',
-        summary: 'Summary',
-        url: 'URL',
-        published_date: 'Published',
-        modified_date: 'Modified'
+        is_valid: "Valid",
+        id: "Vulnerability ID",
+        summary: "Summary",
+        url: "URL",
+        published_date: "Published",
+        modified_date: "Modified"
     };
 
     const packageUpdates = useFetching(async () => {
@@ -101,6 +101,7 @@ const ErrataChange = () => {
 
     React.useEffect(() => {
         packageUpdates.fetching()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // check the checkbox to remove the vulnerability
@@ -141,12 +142,32 @@ const ErrataChange = () => {
                                 <Td dataLabel={columnNames.url}>
                                     {"url" in vuln ?
                                         <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
-                                        <Link target="_blank"
-                                            to={`https://bugzilla.altlinux.org/${vuln.id}`}>{`https://bugzilla.altlinux.org/${vuln.id}`}</Link>
+                                        <Link
+                                            target="_blank"
+                                            to={`https://bugzilla.altlinux.org/${vuln.id}`}
+                                        >
+                                            {`https://bugzilla.altlinux.org/${vuln.id}`}
+                                        </Link>
                                     }
                                 </Td>
-                                <Td dataLabel={columnNames.published_date}>{"published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ? Moment(vuln.published_date).format('D MMMM YYYY') : "-"}</Td>
-                                <Td dataLabel={columnNames.modified_date}>{"modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ? Moment(vuln.modified_date).format('D MMMM YYYY') : "-"}</Td>
+                                <Td
+                                    dataLabel={columnNames.published_date}
+                                >
+                                    {
+                                        "published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ?
+                                            Moment(vuln.published_date).format("D MMMM YYYY") :
+                                            "-"
+                                    }
+                                </Td>
+                                <Td
+                                    dataLabel={columnNames.modified_date}
+                                >
+                                    {
+                                        "modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ?
+                                            Moment(vuln.modified_date).format("D MMMM YYYY") :
+                                            "-"
+                                    }
+                                </Td>
                                 <Td
                                     select={{
                                         rowIndex: vulnIndex,
@@ -190,12 +211,20 @@ const ErrataChange = () => {
                                 </TextContent>
 
                                 <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
-                                    <DescriptionListGroup>
-                                        <DescriptionListTerm>Task ID:</DescriptionListTerm>
-                                        <DescriptionListDescription>
-                                            <Link
-                                                to={`/tasks/${errataInfo?.task_id}`}>#{errataInfo?.task_id}</Link></DescriptionListDescription>
-                                    </DescriptionListGroup>
+                                    {errataInfo?.task_id && errataInfo?.task_id !== 0 ?
+                                        <DescriptionListGroup>
+                                            <DescriptionListTerm>Task ID:</DescriptionListTerm>
+                                            <DescriptionListDescription>
+                                                <Link
+                                                    to={`/tasks/${errataInfo?.task_id}`}
+                                                >
+                                                    #{errataInfo?.task_id}
+                                                </Link>
+                                            </DescriptionListDescription>
+                                        </DescriptionListGroup>
+                                        :
+                                        undefined
+                                    }
                                     <DescriptionListGroup>
                                         <DescriptionListTerm>Package name:</DescriptionListTerm>
                                         <DescriptionListDescription>
@@ -209,15 +238,21 @@ const ErrataChange = () => {
                                     </DescriptionListGroup>
                                     <DescriptionListGroup>
                                         <DescriptionListTerm>Package version:</DescriptionListTerm>
-                                        <DescriptionListDescription>{errataInfo?.pkg_version}-{errataInfo?.pkg_release}</DescriptionListDescription>
+                                        <DescriptionListDescription>
+                                            {errataInfo?.pkg_version}-{errataInfo?.pkg_release}
+                                        </DescriptionListDescription>
                                     </DescriptionListGroup>
                                     <DescriptionListGroup>
                                         <DescriptionListTerm>Errata created date: </DescriptionListTerm>
-                                        <DescriptionListDescription>{Moment(errataInfo?.created).format('D MMMM YYYY')}</DescriptionListDescription>
+                                        <DescriptionListDescription>
+                                            {Moment(errataInfo?.created).format("D MMMM YYYY")}
+                                        </DescriptionListDescription>
                                     </DescriptionListGroup>
                                     <DescriptionListGroup>
                                         <DescriptionListTerm>Errata updated date: </DescriptionListTerm>
-                                        <DescriptionListDescription>{Moment(errataInfo?.updated).format('D MMMM YYYY')}</DescriptionListDescription>
+                                        <DescriptionListDescription>
+                                            {Moment(errataInfo?.updated).format("D MMMM YYYY")}
+                                        </DescriptionListDescription>
                                     </DescriptionListGroup>
                                 </DescriptionList>
 
@@ -225,7 +260,7 @@ const ErrataChange = () => {
                                     <ToolbarContent>
                                         <ToolbarFilter
                                             key={"toolbar-search-tss"}
-                                            chips={searchInputValue !== '' ? [searchInputValue] : []}
+                                            chips={searchInputValue !== "" ? [searchInputValue] : []}
                                             deleteChip={() => {
                                                 onSearchInputChange("")
                                             }}
@@ -235,7 +270,6 @@ const ErrataChange = () => {
                                             <FormGroup>
                                                 <SearchInput
                                                     className={"toolbar-search-input"}
-                                                    // style={{"borderBottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
                                                     aria-label="Find vulnerabilities"
                                                     placeholder="Find vulnerabilities"
                                                     onChange={(_event, value) => onSearchInputChange(value)}
@@ -273,7 +307,7 @@ const ErrataChange = () => {
                         </div>
 
                         <WizardFooterWrapper>
-                            <Flex justifyContent={{default: 'justifyContentSpaceBetween'}} style={{"width": "100%"}}>
+                            <Flex justifyContent={{default: "justifyContentSpaceBetween"}} style={{"width": "100%"}}>
                                 <FlexItem>
                                     <Flex>
                                         <Button variant={"primary"}>
