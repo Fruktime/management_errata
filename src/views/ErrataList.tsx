@@ -115,9 +115,8 @@ function ErrataList() {
             containerRef: errataTypeContainerRef,
             cssStyle: {},
             menuItems: [
-                <MenuItem itemId="task">Task</MenuItem>,
-                <MenuItem itemId="branch">Branch</MenuItem>,
-                <MenuItem itemId="bulletin">Bulletin</MenuItem>,
+                <MenuItem itemId="packages">Packages</MenuItem>,
+                <MenuItem itemId="repository">Repository</MenuItem>,
             ]
         },
     ]
