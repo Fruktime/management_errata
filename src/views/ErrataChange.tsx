@@ -58,8 +58,9 @@ import Moment from "moment";
 import {css} from "@patternfly/react-styles";
 import styles from "@patternfly/react-styles/css/components/Wizard/wizard";
 import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import AddVulnsForm from "../components/forms/AddVulnsForm";
 
-const ErrataChange = () => {
+const ErrataChange: React.FunctionComponent = (): React.ReactElement => {
     // information about errata
     const [errataInfo, setErrataInfo] = React.useState<IErrataPackageUpdates>()
     // errata ID from URL params
@@ -74,6 +75,11 @@ const ErrataChange = () => {
     const [vulnList, setVulnList] = React.useState<IVulns[] | IBug[]>([]);
     const [searchVulns, setSearchVulns] = React.useState(vulnList)
 
+    // modal window for adding a vulnerability to errata
+    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
+
+    const [variantAddVulns, setVariantAddVulns] = React.useState<"asList" | "fromList">("fromList")
+
     // table column names
     const columnNames = {
         is_valid: "Valid",
@@ -82,6 +88,14 @@ const ErrataChange = () => {
         url: "URL",
         published_date: "Published",
         modified_date: "Modified"
+    };
+
+    // handle modal window toggle
+    const handleModalToggle = (_event?: KeyboardEvent | React.MouseEvent, variant?: "asList" | "fromList") => {
+        if (variant) {
+            setVariantAddVulns(variant)
+        }
+        setIsModalOpen(!isModalOpen);
     };
 
     const packageUpdates = useFetching(async () => {
@@ -103,6 +117,10 @@ const ErrataChange = () => {
         packageUpdates.fetching()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    React.useEffect( () => {
+        setSearchVulns(vulnList)
+    }, [vulnList])
 
     // check the checkbox to remove the vulnerability
     const setSelected = (vuln: IVulns | IBug, isSelecting = true) =>
@@ -310,26 +328,49 @@ const ErrataChange = () => {
                             <Flex justifyContent={{default: "justifyContentSpaceBetween"}} style={{"width": "100%"}}>
                                 <FlexItem>
                                     <Flex>
-                                        <Button variant={"primary"}>
+                                        <Button
+                                            key={"save-errata"}
+                                            variant={"primary"}
+                                            className={"pf-v5-u-mr-sm"}
+                                        >
                                             Save
                                         </Button>
-                                        <Button variant={"primary"}>
+                                        <Button
+                                            key={"save-and-continue-errata"}
+                                            variant={"primary"}
+                                        >
                                             Save and continue
-                                        </Button>
-                                        <Button variant={"primary"}>
-                                            Add vulnerability
                                         </Button>
                                     </Flex>
                                 </FlexItem>
                                 <FlexItem>
-                                    <Button variant={"danger"}>
-                                        Discard Errata
-                                    </Button>
+                                    <Flex>
+                                        <Button
+                                            key={"add-vulns-as-list"}
+                                            variant={"primary"}
+                                            onClick={(event) => handleModalToggle(event, "asList")}
+                                            className={"pf-v5-u-mr-sm"}
+                                        >
+                                            Add vulnerabilities as a list
+                                        </Button>
+                                        <Button key={"discard-errata"} variant={"danger"}>
+                                            Discard Errata
+                                        </Button>
+                                    </Flex>
                                 </FlexItem>
                             </Flex>
                         </WizardFooterWrapper>
                     </div>
                 </div>
+
+                <AddVulnsForm
+                    setListAddedVulns={setVulnList}
+                    isOpen={isModalOpen}
+                    handleToggle={handleModalToggle}
+                    title={"Add vulnerability"}
+                    ariaLabel={"Add vulnerability"}
+                    variant={variantAddVulns}
+                />
             </PageSection>
         </React.Fragment>
     );

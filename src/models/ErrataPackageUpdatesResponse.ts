@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -48,6 +48,7 @@ export interface IVulns {
     body: string;
     /** Vulnerability information is valid */
     is_valid: boolean;
+    related_vulns: string[];
 }
 
 export interface IErrataPackageUpdates {

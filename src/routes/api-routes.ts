@@ -22,9 +22,11 @@ interface IApiRoutes {
     refreshToken: string;
     errataBranches: string;
     errataList: string;
-    taskList: string
-    taskInfo: string
-    allTasksBranches: string
+    taskList: string;
+    taskInfo: string;
+    allTasksBranches: string;
+    errataPackagesUpdates: string;
+    vulns: string;
 }
 
 export const routes: IApiRoutes = {
@@ -35,5 +37,7 @@ export const routes: IApiRoutes = {
     errataList: "/errata/find_erratas",
     taskList: "/management/task_list",
     taskInfo: "/management/task_info",
-    allTasksBranches: "/task/progress/all_tasks_branches"
+    allTasksBranches: "/task/progress/all_tasks_branches",
+    errataPackagesUpdates: "/errata/packages_updates",
+    vulns: "/management/vulns",
 }
