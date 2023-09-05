@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import {IPageSizeOptions} from "./models/IPageSizeOptions";
+import {IErrataReferences} from "./models/IErrataReferences";
 
 type TLabelColors = (
     "blue" | "gold" | "red" | "grey"
@@ -57,3 +58,17 @@ export const smartSplit = (text: string): string[] => {
     }
     return result;
 };
+
+export const buildErrataReferences = (refs: string[]): IErrataReferences[] => {
+    const result: IErrataReferences[] = []
+    refs.forEach((ref) => {
+        if (Number.isInteger(ref)) {
+            result.push({type: "bug", link: ref})
+        } else if (ref.startsWith("ALT-BU-")) {
+            result.push({type: "errata", link: ref})
+        } else {
+            result.push({type: "vuln", link: ref})
+        }
+    })
+    return result
+}
