@@ -72,3 +72,13 @@ export const buildErrataReferences = (refs: string[]): IErrataReferences[] => {
     })
     return result
 }
+
+/**
+ * Check if string is digit.
+ * @param str - string to test
+ * @return flag whether the string is a digit
+ */
+export const isDigit = (str: string): boolean => {
+    const reDigit: RegExp = /^\d+$/;
+    return str !== "" && reDigit.test(str);
+}
