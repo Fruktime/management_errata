@@ -16,14 +16,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {IPageSizeOptions} from "./models/IPageSizeOptions";
 import {IErrataReferences} from "./models/IErrataReferences";
 
+/** Color types for the Label component */
 type TLabelColors = (
     "blue" | "gold" | "red" | "grey"
 )
 
-export const errataLabelColor = (type: "errata" | "vuln" | "bug"): TLabelColors => {
+
+/**
+ * Get vulnerability color for Label component.
+ * @param type - vulnerability type
+ * @returns color name
+ */
+export const vulnLabelColor = (type: "errata" | "vuln" | "bug"): TLabelColors => {
     /*
     Return color name for label.
     */
@@ -39,17 +45,13 @@ export const errataLabelColor = (type: "errata" | "vuln" | "bug"): TLabelColors 
     return "grey";
 };
 
-export const pageSizeOptions: IPageSizeOptions[] = [
-    {title: "50", value: 50},
-    {title: "100", value: 100},
-    {title: "200", value: 200},
-]
-
+/**
+ * Convert quoted string literals to unquoted strings with escaped quotes and
+ * backslashes unquoted.
+ * @param text - string to split
+ * @returns string array
+*/
 export const smartSplit = (text: string): string[] => {
-    /*
-    Convert quoted string literals to unquoted strings with escaped quotes and
-    backslashes unquoted.
-    */
     const split_regex = /((?:[^\s'"]*(?:(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')[^\s'"]*)+)|\S+)/g;
     const result = [];
     let match;
@@ -59,6 +61,11 @@ export const smartSplit = (text: string): string[] => {
     return result;
 };
 
+/**
+ * Convert the list of vulnerabilities to a list of vulnerabilities and their types.
+ * @param refs - list of vulnerabilities (CVE, BDU and bug ID)
+ * @returns IErrataReferences[] - list of vulnerabilities and their types
+ */
 export const buildErrataReferences = (refs: string[]): IErrataReferences[] => {
     const result: IErrataReferences[] = []
     refs.forEach((ref) => {
