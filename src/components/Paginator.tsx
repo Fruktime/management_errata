@@ -62,7 +62,8 @@ export const Paginator:React.FunctionComponent<PaginatorProps> = ({
      * @param pageNumber current page
      */
     const handlePageChange = (pageNumber: number) => {
-        navigate(`?${constants.PAGE_VAR}=${pageNumber}`);
+        query.set(constants.PAGE_VAR, pageNumber.toString())
+        navigate(`?${query}`);
         paginatorStore.setPage(pageNumber);
     };
 
