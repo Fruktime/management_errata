@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -17,8 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import React from "react";
-import {Menu, MenuContent, MenuList, MenuToggle, Popper, ToolbarFilter} from "@patternfly/react-core";
+import {Menu, MenuContent, MenuItem, MenuList, MenuToggle, Popper, ToolbarFilter} from "@patternfly/react-core";
 import FilterIcon from "@patternfly/react-icons/dist/esm/icons/filter-icon";
+import {useQuery} from "../../hooks/useQuery";
+import {useNavigate} from "react-router-dom";
 
 
 export interface DropdownItem {
@@ -29,7 +31,7 @@ export interface DropdownItem {
     /** Filter state */
     filter: any;
     /** Function for set filter */
-    setFilter: (value: any) => void;
+    setFilter: (value: string) => void;
     /**
      * Allows getting a ref to the component instance.
      * Once the component unmounts, React will set `ref.current` to `null` (or call the ref with `null` if you passed a callback ref).
@@ -41,7 +43,7 @@ export interface DropdownItem {
     /** CSS styles */
     cssStyle: React.CSSProperties,
     /** Menu items */
-    menuItems: React.ReactNode[];
+    menuItems: string[];
 }
 
 interface onToggleClickProps {
@@ -54,8 +56,28 @@ interface onSelectProps {
     field: DropdownItem;
 }
 
-export default function DropdownMenuItems({items}: {items: DropdownItem[]}): React.ReactElement {
+export default function ToolbarDropdown({items}: {items: DropdownItem[]}): React.ReactElement {
+    const query = useQuery();
+    const navigate = useNavigate()
     const [isMenuOpen, setMenuOpen] = React.useState<{[key: string]: boolean}>({})
+
+    const validateQueryParams = () => {
+        items.forEach((item) => {
+            if (item.menuItems.length > 0 && query.has(item.field)) {
+                if (item.menuItems.includes(query.get(item.field) as string)) {
+                    item.setFilter(query.get(item.field) as string);
+                } else {
+                    query.delete(item.field)
+                    navigate(`?${query}`)
+                }
+            }
+        })
+    }
+
+    React.useEffect(() => {
+        validateQueryParams();
+    }, [items, query])
+
 
     const onToggleClick = ({event, field}: onToggleClickProps) => {
         event.stopPropagation();
@@ -72,7 +94,9 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}): Rea
         if (typeof itemId === 'undefined') {
             return;
         }
-        field.setFilter(itemId.toString());
+        query.set(`${field.field}`, itemId.toString())
+        navigate(`?${query}`)
+        field.setFilter(itemId.toString())
         setMenuOpen({...isMenuOpen, [field.field]: !isMenuOpen[field.field]});
     }
 
@@ -105,7 +129,11 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}): Rea
             >
                 <MenuContent>
                     <MenuList>
-                        {field.menuItems}
+                        {field.menuItems.map((item) => {
+                            return (
+                                <MenuItem key={`filter-${item}`} itemId={item}>{item}</MenuItem>
+                            )
+                        })}
                     </MenuList>
                 </MenuContent>
             </Menu>
@@ -118,8 +146,12 @@ export default function DropdownMenuItems({items}: {items: DropdownItem[]}): Rea
                 return (
                     <ToolbarFilter
                         key={`toolbar-filter-${fieldIndex}`}
-                        chips={field.filter !== '' ? [field.filter] : []}
-                        deleteChip={() => field.setFilter('')}
+                        chips={field.filter !== undefined && field.filter !== '' ? [field.filter] : []}
+                        deleteChip={() => {
+                            field.setFilter("")
+                            query.delete(field.field)
+                            navigate(`?${query}`);
+                        }}
                         categoryName={field.name}
                     >
                         <div ref={field.containerRef}>
