@@ -18,25 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import React from "react";
 import {TaskListElement} from "../models/TaskListResponse";
-import {TFetch, useFetching} from "../hooks/useFetching";
-import api from "../http/api";
-import {routes} from "../routes/api-routes";
 import {List, ListItem, MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
 import {
     Bullseye,
     EmptyState,
     EmptyStateIcon,
     EmptyStateVariant,
-    FormGroup,
-    FormHelperText,
-    HelperText,
-    HelperTextItem,
     Label,
     LabelGroup,
-    MenuItem,
     PageSection,
-    Pagination,
-    SearchInput,
     Title,
     Toolbar,
     ToolbarContent,
@@ -49,166 +39,81 @@ import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import Loader from "../components/Loader";
 import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Moment from "moment/moment";
-import DropdownMenuItems, {DropdownItem} from "../components/UI/DropdownMenuItems";
-import {errataLabelColor, pageSizeOptions, smartSplit} from "../utils";
-import {Link} from "react-router-dom";
+import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
+import {vulnLabelColor, smartSplit} from "../utils";
+import {Link, useNavigate} from "react-router-dom";
+import {Paginator} from "../components/Paginator";
+import paginatorStore from "../stores/paginatorStore";
+import {observer} from "mobx-react";
+import taskListStore from "../stores/taskListStore";
+import {Search} from "../components/Search";
+import searchStore from "../stores/searchStore";
+import {constants} from "../misc";
+import {useQuery} from "../hooks/useQuery";
 
 interface NestedItemsProps {
     data: TaskListElement;
     columnKey: "vulnerabilities" | "subtasks";
 }
 
-function TaskList() {
-    // list of tasks in DONE status.
-    const [taskList, setTaskList] = React.useState<TaskListElement[]>([])
-    // branches list for tasks
-    const [branchList, setBranchList] = React.useState<string[]>([])
-    // number of items per page
-    const [pageSize, setPageSize] = React.useState<number>(50)
-    // current page number
-    const [page, setPage] = React.useState<number>(1)
-    // total number of tasks
-    const [totalCount, setTotalCount] = React.useState<number>(0);
+/** Column names in the table. */
+const columnNames = {
+    task_id: "Task ID",
+    branch: "Branch",
+    owner: "Owner",
+    packages: "Packages",
+    errata_id: "Errata ID",
+    vulnerabilities: "Vulnerabilities",
+    changed: "Changed"
+};
 
-    // filter by package set name
-    const [filterBranch, setFilterBranch] = React.useState<string>('')
-    // filter from search input
-    const [filterSearch, setFilterSearch] = React.useState<string>('')
-
-    const [validSearch, setValidSearch] = React.useState<string>('')
-    const [validSearchText, setValidSearchText] = React.useState<string>('')
+const TaskList: React.FunctionComponent = (): React.ReactElement => {
+    const tasks = taskListStore;
+    const query = useQuery();
+    const navigate = useNavigate()
 
     const branchToggleRef = React.useRef<MenuToggleElement>(null);
     const branchMenuRef = React.useRef<MenuToggleElement>(null);
     const branchContainerRef = React.useRef<MenuToggleElement>(null);
 
-    const columnNames = {
-        task_id: "Task ID",
-        branch: "Branch",
-        owner: "Owner",
-        packages: "Packages",
-        errata_id: "Errata ID",
-        vulnerabilities: "Vulnerabilities",
-        changed: "Changed"
-    };
-
+    /**
+     * Dropdown filters
+     */
     const selectFilters: DropdownItem[] = [
         {
             field: "branch",
             name: "Branch",
-            filter: filterBranch,
-            setFilter: setFilterBranch,
+            filter: tasks.filterBranch,
+            setFilter: function (value) {
+                tasks.setFilterBranch(value)
+            },
             toggleRef: branchToggleRef,
             menuRef: branchMenuRef,
             containerRef: branchContainerRef,
             cssStyle: {"width": "170px"},
-            menuItems: [
-                branchList.map((branch, indexBranch) => {
-                    // exclude 'icarus' branch from list
-                    if (branch !== "icarus") {
-                        return (
-                            <MenuItem key={branch} itemId={branch}>{branch}</MenuItem>
-                        )
-                    } else {
-                        return undefined
-                    }
-
-                })
-            ]
+            menuItems: tasks.branchList.filter(branch => branch !== "icarus")
         },
     ]
 
-    const tasks: TFetch = useFetching(async (
-        pageSize: number,
-        page: number,
-        filterBranch: string,
-        filterSearch: string
-    ) => {
-        const response = await api.get(routes.taskList, {
-            params: {
-                limit: pageSize,
-                page: page,
-                branch: filterBranch !== '' ? filterBranch : null,
-                input: filterSearch !== '' ? smartSplit(filterSearch).join(',') : null
-            },
-            paramsSerializer: {
-                indexes: null
-            },
-        });
-        if (response.data.tasks) {
-            setTaskList(response.data.tasks)
-            setTotalCount(Number(response.headers['x-total-count']))
-        } else {
-            setTaskList([])
-            setTotalCount(0)
-        }
-    });
-
-    const branches: TFetch = useFetching(async () => {
-        const response = await api.get(routes.allTasksBranches)
-        if (response.data.branches) {
-            setBranchList(response.data.branches)
-        } else {
-            setBranchList([])
-        }
-    })
-
     React.useEffect(() => {
-        tasks.fetching(
-            pageSize,
-            page,
-            filterBranch,
-            filterSearch
-        );
+        tasks.getTaskList(
+            searchStore.value,
+            paginatorStore.page,
+            paginatorStore.pageSize
+        ).then();
+        if (tasks.branchList.length === 0) {
+            tasks.getBranches().then();
+        }
+    }, [searchStore.value, paginatorStore.page, paginatorStore.pageSize, tasks.filterBranch])
 
-        branches.fetching();
-
-    }, [page, pageSize, filterBranch, filterSearch])
-
+    /** Clear ol filter. */
     const clearAllFilters = () => {
-        // clear all filters
-        setFilterSearch('')
-        setFilterBranch("")
+        query.delete("branch")
+        query.delete(constants.SEARCH_VAR)
+        tasks.setFilterBranch("")
+        searchStore.setValue("")
+        navigate(`?${query}`)
     }
-
-    const checkInput = (val: string) => {
-        // validation search input
-        const splitValue: string[] = smartSplit(val)
-        if (splitValue.length > 4) {
-            setValidSearch("error")
-            setValidSearchText("Input values list should contain no more than 4 elements")
-        } else if (splitValue.length === 0) {
-            setValidSearch("success")
-            setValidSearchText("")
-        }
-    }
-
-    const onSearchInputChange = (newValue: string) => {
-        // set the value in filterSearch when changing the text in the search field.
-        checkInput(newValue)
-        if (newValue !== "") {
-            if (validSearch !== "error") {
-                setFilterSearch(newValue)
-            }
-        } else {
-            setFilterSearch('')
-            checkInput('')
-        }
-    };
-
-    const onNameInput = ({event, value}: { event: React.SyntheticEvent<HTMLButtonElement>, value: string }) => {
-        // set value in filterSearch when searching.
-        if ('key' in event && event.key !== 'Enter') {
-            return;
-        }
-        if (value) {
-            setFilterSearch(value)
-        } else {
-            setFilterSearch('')
-        }
-    };
-
-
 
     const NestedItems: React.FunctionComponent<NestedItemsProps> = ({data, columnKey}): React.ReactElement => {
 
@@ -216,7 +121,7 @@ function TaskList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
-                        if (filterSearch && smartSplit(filterSearch).some(word => vuln.id.toLowerCase().includes(word.toLowerCase()))) {
+                        if (searchStore.value && smartSplit(searchStore.value).some(word => vuln.id.toLowerCase().includes(word.toLowerCase()))) {
                             return (
                                 <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
                                        color={"orange"}>{vuln.id}</Label>
@@ -224,7 +129,7 @@ function TaskList() {
                         } else {
                             return (
                                 <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
-                                       color={errataLabelColor(vuln.type)}>{vuln.id}</Label>
+                                       color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
                             )
                         }
                         }
@@ -235,7 +140,7 @@ function TaskList() {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((subtask, subIndex) => {
-                            if (filterSearch && smartSplit(filterSearch).some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
+                            if (searchStore.value && smartSplit(searchStore.value).some(word => subtask.src_pkg_name.toLowerCase().includes(word.toLowerCase()))) {
                                 return (
                                     <Label
                                         key={`${data.task_id}-${subtask.subtask_id}-${subIndex}`}
@@ -273,7 +178,7 @@ function TaskList() {
     const renderRows = () => {
         if (tasks.isLoading) {
             return (
-                <Tr>
+                <Tr key={"row-loader"}>
                     <Td colSpan={Object.keys(columnNames).length}>
                         <Loader/>
                     </Td>
@@ -281,7 +186,7 @@ function TaskList() {
             )
         } else if (tasks.error) {
             return (
-                <Tr>
+                <Tr key={"row-no-result-found"}>
                     <Td colSpan={Object.keys(columnNames).length}>
                         <Bullseye>
                             <EmptyState variant={EmptyStateVariant.sm}>
@@ -296,33 +201,45 @@ function TaskList() {
             )
         } else {
             return (
-                taskList.map((task, rowIndex) => {
+                tasks.taskList.map((task, rowIndex) => {
                     return (
-                        <Tbody key={task.task_id}>
-                            <Tr>
-                                <Td component="th" dataLabel={columnNames.task_id}><Link to={`/tasks/${task.task_id}`}>{task.task_id}</Link></Td>
-                                <Td component="th" dataLabel={columnNames.branch}>{task.branch}</Td>
-                                <Td component="th" dataLabel={columnNames.branch}><Link target={"_blank"} to={`https://packages.altlinux.org/en/${task.branch}/maintainers/${task.owner}/`}>{task.owner}</Link></Td>
-                                <Td component="th" dataLabel={columnNames.packages}><NestedItems data={task}
-                                                                                                 columnKey={"subtasks"}/></Td>
-                                <Td component="th"
-                                    dataLabel={columnNames.errata_id}>{task.erratas ?
-                                    <List isPlain>
-                                        {task.erratas.map((errata, errataIndex) => {
-                                            return (
-                                                <ListItem><Link key={`${errata}-${errataIndex}`} to={`/errata/${errata}/change`}>{errata}</Link></ListItem>
-                                            )
-                                        })}
-                                    </List> : "-"}</Td>
-                                <Td component="th" dataLabel={columnNames.vulnerabilities}>{
-                                    task.vulnerabilities.length > 0 ?
-                                        <NestedItems data={task} columnKey={"vulnerabilities"}/>
-                                        :
-                                        "-"
-                                }</Td>
-                                <Td dataLabel={columnNames.changed}>{Moment(task.changed).format('D MMMM YYYY, h:mm:ss a')}</Td>
-                            </Tr>
-                        </Tbody>
+                        <Tr key={task.task_id}>
+                            <Td component="th" dataLabel={columnNames.task_id}>
+                                <Link to={`/tasks/${task.task_id}`}>{task.task_id}</Link>
+                            </Td>
+                            <Td component="th" dataLabel={columnNames.branch}>{task.branch}</Td>
+                            <Td component="th" dataLabel={columnNames.branch}>
+                                <Link
+                                    target={"_blank"}
+                                    to={`https://packages.altlinux.org/en/${task.branch}/maintainers/${task.owner}/`}
+                                >
+                                    {task.owner}
+                                </Link>
+                            </Td>
+                            <Td component="th" dataLabel={columnNames.packages}>
+                                <NestedItems data={task} columnKey={"subtasks"}/>
+                            </Td>
+                            <Td component="th"
+                                dataLabel={columnNames.errata_id}>{task.erratas ?
+                                <List isPlain>
+                                    {task.erratas.map((errata, errataIndex) => {
+                                        return (
+                                            <ListItem key={`${errata}-${errataIndex}`}>
+                                                <Link to={`/errata/${errata}/change`}>{errata}</Link>
+                                            </ListItem>
+                                        )
+                                    })}
+                                </List> : "-"}</Td>
+                            <Td component="th" dataLabel={columnNames.vulnerabilities}>{
+                                task.vulnerabilities.length > 0 ?
+                                    <NestedItems data={task} columnKey={"vulnerabilities"}/>
+                                    :
+                                    "-"
+                            }</Td>
+                            <Td dataLabel={columnNames.changed}>
+                                {Moment(task.changed).format('D MMMM YYYY, h:mm:ss a')}
+                            </Td>
+                        </Tr>
                     )
                 })
             )
@@ -335,67 +252,37 @@ function TaskList() {
                 <ToolbarContent>
                     <ToolbarToggleGroup toggleIcon={<FilterIcon/>} breakpoint="xl">
                         <ToolbarGroup variant="filter-group">
-                            <DropdownMenuItems items={selectFilters}/>
+                            <ToolbarDropdown items={selectFilters}/>
                         </ToolbarGroup>
                     </ToolbarToggleGroup>
                     <ToolbarFilter
                         key={"toolbar-search-tasks"}
-                        chips={filterSearch !== '' ? [filterSearch] : []}
+                        chips={searchStore.value !== "" ? [searchStore.value] : []}
                         deleteChip={() => {
-                            setFilterSearch('')
+                            searchStore.setValue("")
+                            query.delete(constants.SEARCH_VAR)
+                            navigate(`?${query}`);
                         }}
                         categoryName="Search"
                         showToolbarItem={true}
                     >
-                        <FormGroup>
-                            <SearchInput
-                                className={"toolbar-search-input"}
-                                style={{"borderBottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
-                                aria-label="Find tasks by #task ID, @owner, Errata ID, bug:bug number"
-                                placeholder="Find tasks by #task ID, @owner, Errata ID, bug:bug number"
-                                onChange={(_event, value) => onSearchInputChange(value)}
-                                value={filterSearch}
-                                onClear={() => {
-                                    onSearchInputChange('');
-                                }}
-                                onSearch={(event, value) => onNameInput({event, value})}
-                                onClick={(event) => {
-                                    checkInput((event.target as HTMLButtonElement).value)
-                                }}
-                            />
-                            {validSearch === "error" && (
-                                <FormHelperText>
-                                    <HelperText>
-                                        <HelperTextItem isDynamic variant="error">
-                                            {validSearchText}
-                                        </HelperTextItem>
-                                    </HelperText>
-                                </FormHelperText>
-                            )}
-                        </FormGroup>
+                        <Search
+                            ariaLabel={"Find tasks by #task ID, @owner, Errata ID, bug:bug number"}
+                            placeholder={"Find tasks by #task ID, @owner, Errata ID, bug:bug number"}
+                        />
 
                     </ToolbarFilter>
                     <ToolbarItem variant="pagination">
-                        <Pagination
+                        <Paginator
                             isCompact={true}
-                            itemCount={totalCount}
-                            widgetId={`${PaginationVariant.top}-example`}
-                            usePageInsets={true}
-                            page={page}
-                            perPage={pageSize}
-                            perPageOptions={pageSizeOptions}
-                            onSetPage={(_evt, newPage) => setPage(newPage)}
-                            onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                            totalCount={tasks.totalCount}
                             variant={PaginationVariant.top}
-                            titles={{
-                                paginationAriaLabel: `${PaginationVariant.top} pagination`
-                            }}
                         />
                     </ToolbarItem>
                 </ToolbarContent>
             </Toolbar>
             <Table variant={"compact"} isStickyHeader>
-                <Thead>
+                <Thead key={"table-head-tasks"}>
                     <Tr>
                         <Th>{columnNames.task_id}</Th>
                         <Th>{columnNames.branch}</Th>
@@ -406,25 +293,17 @@ function TaskList() {
                         <Th width={15}>{columnNames.changed}</Th>
                     </Tr>
                 </Thead>
-                {renderRows()}
+                <Tbody key={"table-body-tasks"}>
+                    {renderRows()}
+                </Tbody>
             </Table>
-            <Pagination
+            <Paginator
                 isCompact={false}
-                itemCount={totalCount}
-                widgetId={`${PaginationVariant.bottom}-example`}
-                usePageInsets={true}
-                page={page}
-                perPage={pageSize}
-                perPageOptions={pageSizeOptions}
-                onSetPage={(_evt, newPage) => setPage(newPage)}
-                onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                totalCount={tasks.totalCount}
                 variant={PaginationVariant.bottom}
-                titles={{
-                    paginationAriaLabel: `${PaginationVariant.bottom} pagination`
-                }}
             />
         </PageSection>
     );
 }
 
-export default TaskList;
+export default observer(TaskList);
