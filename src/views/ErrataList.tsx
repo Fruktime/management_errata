@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -23,16 +23,9 @@ import {
     EmptyState,
     EmptyStateIcon,
     EmptyStateVariant,
-    FormGroup,
-    FormHelperText,
-    HelperText,
-    HelperTextItem,
     Label,
     LabelGroup,
-    MenuItem,
     PageSection,
-    Pagination,
-    SearchInput,
     Title,
     Toolbar,
     ToolbarContent,
@@ -42,16 +35,21 @@ import {
     ToolbarToggleGroup,
 } from "@patternfly/react-core";
 import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
-import {TFetch, useFetching} from "../hooks/useFetching";
 import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Loader from "../components/Loader";
 import {MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
 import {ErrataListElement} from "../models/ErrataListResponse";
-import api from "../http/api";
-import DropdownMenuItems, {DropdownItem} from "../components/UI/DropdownMenuItems";
-import {routes} from "../routes/api-routes";
-import {errataLabelColor, pageSizeOptions} from "../utils";
-import {Link} from "react-router-dom";
+import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
+import {vulnLabelColor} from "../utils";
+import {Link, useNavigate} from "react-router-dom";
+import {Paginator} from "../components/Paginator";
+import paginatorStore from "../stores/paginatorStore";
+import {observer} from "mobx-react";
+import {useQuery} from "../hooks/useQuery";
+import errataListStore from "../stores/errataListStore";
+import searchStore from "../stores/searchStore";
+import {constants} from "../misc";
+import {Search} from "../components/Search";
 
 interface NestedItemsProps {
     data: ErrataListElement;
@@ -59,17 +57,9 @@ interface NestedItemsProps {
 }
 
 function ErrataList() {
-    const [errataList, setErrata] = React.useState<ErrataListElement[]>([])
-    const [pageSize, setPageSize] = React.useState<number>(50)
-    const [page, setPage] = React.useState<number>(1)
-    const [totalCount, setTotalCount] = React.useState<number>(0);
-
-    const [filterErrataType, setFilterErrataType] = React.useState<string>('');
-    const [filterSearch, setFilterSearch] = React.useState<string[]>([])
-    const [validSearch, setValidSearch] = React.useState<string>('')
-    const [validSearchText, setValidSearchText] = React.useState<string>('')
-    const [filterBranch, setFilterBranch] = React.useState<string>('')
-    const [branchList, setBranchList] = React.useState<string[]>([])
+    const erratas = errataListStore;
+    const query = useQuery();
+    const navigate = useNavigate()
 
     const errataTypeToggleRef = React.useRef<MenuToggleElement>(null);
     const branchToggleRef = React.useRef<MenuToggleElement>(null);
@@ -91,132 +81,51 @@ function ErrataList() {
         {
             field: "branch",
             name: "Branch",
-            filter: filterBranch,
-            setFilter: setFilterBranch,
+            filter: erratas.filterBranch,
+            setFilter: function (value: string) {
+                erratas.setFilterBranch(value)
+            },
             toggleRef: branchToggleRef,
             menuRef: branchMenuRef,
             containerRef: branchContainerRef,
             cssStyle: {"width": "170px"},
-            menuItems: [
-                branchList.map((branch, indexBranch) => {
-                    return (
-                        <MenuItem itemId={branch}>{branch}</MenuItem>
-                    )
-                })
-            ]
+            menuItems: erratas.branchList.filter(branch => branch !== "icarus")
         },
         {
             field: "eh_type",
             name: "Errata type",
-            filter: filterErrataType,
-            setFilter: setFilterErrataType,
+            filter: erratas.filterType,
+            setFilter: function (value: string) {
+                erratas.setFilterType(value)
+            },
             toggleRef: errataTypeToggleRef,
             menuRef: errataTypeMenuRef,
             containerRef: errataTypeContainerRef,
             cssStyle: {},
-            menuItems: [
-                <MenuItem itemId="packages">Packages</MenuItem>,
-                <MenuItem itemId="repository">Repository</MenuItem>,
-            ]
+            menuItems: erratas.errataTypes
         },
     ]
 
-    const errata: TFetch = useFetching(async (
-        pageSize,
-        page,
-        filterBranch,
-        filterType,
-        filterSearch
-    ) => {
-        const response = await api.get(routes.errataList, {
-            params: {
-                limit: pageSize,
-                page: page,
-                branch: filterBranch !== '' ? filterBranch : null,
-                type: filterType !== '' ? filterType : null,
-                input: filterSearch
-            },
-            paramsSerializer: {
-                indexes: null
-            },
-        });
-        if (response.data.erratas) {
-            setErrata(response.data.erratas)
-            setTotalCount(Number(response.headers['x-total-count']))
-        } else {
-            setErrata([])
-            setTotalCount(0)
-        }
-    })
-
-    const branches: TFetch = useFetching(async () => {
-        const response = await api.get(routes.errataBranches)
-        if (response.data.branches) {
-            setBranchList(response.data.branches)
-        } else {
-            setBranchList([])
-        }
-    })
-
     React.useEffect(() => {
-        errata.fetching(
-            pageSize,
-            page,
-            filterBranch,
-            filterErrataType,
-            filterSearch
-        );
-        branches.fetching();
-    }, [page, pageSize, filterSearch, filterBranch, filterErrataType])
+        erratas.getErrataList(
+            searchStore.value,
+            paginatorStore.page,
+            paginatorStore.pageSize
+        ).then();
+        if (erratas.branchList.length === 0) {
+            erratas.getBranches().then();
+        }
+    }, [searchStore.value, paginatorStore.page, paginatorStore.pageSize, erratas.filterBranch, erratas.filterType])
 
     const clearAllFilters = () => {
-        // clear all filters
-        setFilterSearch([])
-        setFilterBranch('')
-        setFilterErrataType('')
+        query.delete("branch")
+        query.delete(constants.SEARCH_VAR)
+        query.delete("eh_type")
+        erratas.setFilterBranch("")
+        erratas.setFilterType("")
+        searchStore.setValue("")
+        navigate(`?${query}`)
     }
-
-    const checkInput = (val: string) => {
-        // validation search input
-        if (val === "" || val === undefined) {
-            setValidSearch("default")
-            setValidSearchText("")
-        } else if (val.length < 2) {
-            setValidSearch("error")
-            setValidSearchText("The input should not be shorter than 2 characters")
-        } else if ((/^([\w.+\-_:]{2,},?)+$/).test(val)) {
-            setValidSearch("success")
-            setValidSearchText("")
-        } else {
-            setValidSearch("error")
-            setValidSearchText("The input must match: [a-zA-Z0-9-._:+]")
-        }
-    }
-
-    const onSearchInputChange = (newValue: string) => {
-        // set the value in filterSearch when changing the text in the search field.
-        if (newValue !== "") {
-            setFilterSearch([newValue])
-            checkInput(newValue)
-        } else {
-            setFilterSearch([])
-            checkInput("")
-        }
-
-    };
-
-    const onNameInput = ({event, value}: { event: React.SyntheticEvent<HTMLButtonElement>, value: string }) => {
-        // set value in filterSearch when searching.
-        if ('key' in event && event.key !== 'Enter') {
-            return;
-        }
-
-        if (value) {
-            setFilterSearch([value])
-        } else {
-            setFilterSearch([])
-        }
-    };
 
     const NestedItems: React.FunctionComponent<NestedItemsProps> = ({data, columnKey}): React.ReactElement => {
         // return a LabelGroup with the names of affected packages or vulnerabilities errata
@@ -225,7 +134,7 @@ function ErrataList() {
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
                             return (
-                                <Label key={vuln.id} color={errataLabelColor(vuln.type)}>{vuln.id}</Label>
+                                <Label key={vuln.id} color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
                             )
                         }
                     )}
@@ -256,7 +165,7 @@ function ErrataList() {
     };
 
     const renderRows = () => {
-        if (errata.isLoading) {
+        if (erratas.isLoading) {
             return (
                 <Tr>
                     <Td colSpan={Object.keys(columnNames).length}>
@@ -264,7 +173,7 @@ function ErrataList() {
                     </Td>
                 </Tr>
             )
-        } else if (errata.error) {
+        } else if (erratas.error) {
             return (
                 <Tr>
                     <Td colSpan={Object.keys(columnNames).length}>
@@ -281,7 +190,7 @@ function ErrataList() {
             )
         } else {
             return (
-                errataList.map((errata, rowIndex) => {
+                erratas.errataList.map((errata, rowIndex) => {
                     return (
                         <Tbody key={errata.errata_id}>
                             <Tr>
@@ -312,62 +221,31 @@ function ErrataList() {
                 <ToolbarContent>
                     <ToolbarToggleGroup toggleIcon={<FilterIcon/>} breakpoint="xl">
                         <ToolbarGroup variant="filter-group">
-                            <DropdownMenuItems items={selectFilters}/>
+                            <ToolbarDropdown items={selectFilters}/>
                         </ToolbarGroup>
                     </ToolbarToggleGroup>
                     <ToolbarFilter
                         key={"toolbar-search-errata"}
-                        className={"pf-v5-u-mr-0"}
-                        chips={filterSearch}
+                        chips={searchStore.value !== "" ? [searchStore.value] : []}
                         deleteChip={() => {
-                            setFilterSearch([])
+                            searchStore.setValue("")
+                            query.delete(constants.SEARCH_VAR)
+                            navigate(`?${query}`);
                         }}
                         categoryName="Search"
                         showToolbarItem={true}
                     >
-                        <FormGroup>
-                            <SearchInput
-                                className={"toolbar-search-input"}
-                                style={{"borderBottom": "var(--pf-v5-c-form-control--m-readonly--hover--after--BorderBottomColor)"} as React.CSSProperties}
-                                aria-label="Find errata by Errata ID, vulnerability ID or package name"
-                                placeholder="Find errata by Errata ID, vulnerability ID or package name"
-                                onChange={(_event, value) => onSearchInputChange(value)}
-                                value={filterSearch.slice(-1)[0]}
-                                onClear={() => {
-                                    onSearchInputChange('');
-                                }}
-                                onSearch={(event, value) => onNameInput({event, value})}
-                                onClick={(event) => {
-                                    checkInput((event.target as HTMLButtonElement).value)
-                                }}
-                            />
-                            {validSearch === "error" && (
-                                <FormHelperText>
-                                    <HelperText>
-                                        <HelperTextItem isDynamic variant="error">
-                                            {validSearchText}
-                                        </HelperTextItem>
-                                    </HelperText>
-                                </FormHelperText>
-                            )}
-                            </FormGroup>
+                        <Search
+                            ariaLabel={"Find errata by Errata ID, vulnerability ID or package name"}
+                            placeholder={"Find errata by Errata ID, vulnerability ID or package name"}
+                        />
 
                     </ToolbarFilter>
                     <ToolbarItem variant="pagination">
-                        <Pagination
+                        <Paginator
                             isCompact={true}
-                            itemCount={totalCount}
-                            widgetId={`${PaginationVariant.top}-example`}
-                            usePageInsets={true}
-                            page={page}
-                            perPage={pageSize}
-                            perPageOptions={pageSizeOptions}
-                            onSetPage={(_evt, newPage) => setPage(newPage)}
-                            onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                            totalCount={erratas.totalCount}
                             variant={PaginationVariant.top}
-                            titles={{
-                                paginationAriaLabel: `${PaginationVariant.top} pagination`
-                            }}
                         />
                     </ToolbarItem>
                 </ToolbarContent>
@@ -385,23 +263,13 @@ function ErrataList() {
                 </Thead>
                 {renderRows()}
             </Table>
-            <Pagination
+            <Paginator
                 isCompact={false}
-                itemCount={totalCount}
-                widgetId={`${PaginationVariant.bottom}-example`}
-                usePageInsets={true}
-                page={page}
-                perPage={pageSize}
-                perPageOptions={pageSizeOptions}
-                onSetPage={(_evt, newPage) => setPage(newPage)}
-                onPerPageSelect={(_evt, newPageSize) => setPageSize(newPageSize)}
+                totalCount={erratas.totalCount}
                 variant={PaginationVariant.bottom}
-                titles={{
-                    paginationAriaLabel: `${PaginationVariant.bottom} pagination`
-                }}
             />
         </PageSection>
     )
 }
 
-export default ErrataList;
+export default observer(ErrataList);
