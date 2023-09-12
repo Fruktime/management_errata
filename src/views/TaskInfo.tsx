@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theц
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
@@ -39,13 +39,11 @@ import {
     ActionListItem,
     Icon,
     CardTitle,
-    CardFooter,
-    Breadcrumb, BreadcrumbItem
 } from "@patternfly/react-core";
 import {TFetch, useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
-import {errataLabelColor} from "../utils";
+import {vulnLabelColor} from "../utils";
 import {Link, useParams} from "react-router-dom";
 import {AddCircleOIcon, EditIcon, SearchIcon} from "@patternfly/react-icons";
 import {ITaskInfo} from "../models/TaskInfoResponse";
@@ -79,7 +77,7 @@ function TaskInfo() {
                 {data.map((vuln, vulnIndex) => {
                         return (
                             <Label key={`${vuln.id}-${vulnIndex}`}
-                                   color={errataLabelColor(vuln.type)}>{vuln.id}</Label>
+                                   color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
                         )
                     }
                 )}
