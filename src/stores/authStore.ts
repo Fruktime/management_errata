@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -16,47 +16,71 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import axios from 'axios';
+import axios from "axios";
 import {makeAutoObservable} from "mobx";
+import jwt from "jwt-decode"
 
 import AuthService from "../services/AuthService";
 import {IUser} from "../models/IUser";
-import {AuthResponse} from "../models/AuthResponse";
+import {AuthResponse, IDecodeAccessToken} from "../models/AuthResponse";
 import {routes} from "../routes/api-routes";
 
 
 export default class authStore {
     user = {} as IUser;
-    isAuth = false;
-    isLoading = false;
+    isAuth: boolean = false;
+    isLoading: boolean = false;
+    accessToken: string | null = localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
+    decodeToken: IDecodeAccessToken | null = this.accessToken ? jwt(this.accessToken) : null
 
     constructor() {
         makeAutoObservable(this);
     }
 
+    /** Set whether the user is authorized or not. */
     setAuth(bool: boolean) {
         this.isAuth = bool;
     }
 
+    /** Set about information user. */
     setUser(user: IUser) {
         this.user = user;
     }
 
+    /** Set the flag if authorization or token refresh is in progress. */
     setLoading(bool: boolean) {
         this.isLoading = bool;
     }
 
+    /** Set access token and write it to local storage. */
+    setAccessToken (token: string) {
+        this.accessToken = token
+        localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, token)
+    }
+
+    /** Decode access token and set decodeToken. */
+    setDecodeToken (token: string | null) {
+        if (token) {
+            this.decodeToken = jwt(token)
+        }
+    }
+
+    /** Authenticate an existing user. */
     async login(nickname: string, password: string) {
         try {
             const response = await AuthService.login(nickname, password);
-            localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, response.data.access_token);
+            this.setAccessToken(response.data.access_token)
+            this.setDecodeToken(response.data.access_token)
+            if (this.decodeToken) {
+                this.setUser({nickname: this.decodeToken.nickname, groups: this.decodeToken.groups});
+            }
             this.setAuth(true);
-            this.setUser({nickname});
         } catch (e) {
             throw e;
         }
     }
 
+    /** User logs out. */
     async logout() {
         try {
             await AuthService.logout();
@@ -68,15 +92,20 @@ export default class authStore {
         }
     }
 
+    /** Update access token. */
     async checkAuth() {
         this.setLoading(true);
         try {
             const response = await axios.postForm<AuthResponse>(`${process.env.REACT_APP_API_URL}${routes.refreshToken}`,
                 {
-                    access_token: localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
+                    access_token: this.accessToken
                 }, {withCredentials: true}
             )
-            localStorage.setItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`, response.data.access_token);
+            this.setAccessToken(response.data.access_token)
+            this.setDecodeToken(response.data.access_token)
+            if (this.decodeToken) {
+                this.setUser({nickname: this.decodeToken.nickname, groups: this.decodeToken.groups});
+            }
             this.setAuth(true);
         } catch (e) {
             localStorage.removeItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
@@ -87,11 +116,10 @@ export default class authStore {
         }
     }
 
-    async isAccessTokenExpired() {
-        const token = localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)
-        if (token) {
-            const decodeToken = JSON.parse(atob(token.split(".")[1]))
-            return decodeToken.exp * 1000 > Date.now();
+    /** Check access token expires. */
+    isAccessTokenExpired() {
+        if (this.accessToken && this.decodeToken) {
+            return this.decodeToken.exp * 1000 > Date.now();
         } else {
             return false
         }
