@@ -63,21 +63,27 @@ export default function ToolbarDropdown({items}: {items: DropdownItem[]}): React
 
     const validateQueryParams = () => {
         items.forEach((item) => {
+            if (query.get(item.field) !== null && !item.filter) {
+                item.setFilter(query.get(item.field) as string)
+            }
             if (item.menuItems.length > 0 && query.has(item.field)) {
+                console.log("1")
                 if (item.menuItems.includes(query.get(item.field) as string)) {
+                    console.log("2")
                     item.setFilter(query.get(item.field) as string);
                 } else {
+                    console.log("3")
                     query.delete(item.field)
+                    item.setFilter("")
                     navigate(`?${query}`)
                 }
+            } else if (!query.has(item.field) && item.filter) {
+                item.setFilter("")
             }
         })
     }
 
-    React.useEffect(() => {
-        validateQueryParams();
-    }, [items, query])
-
+    validateQueryParams();
 
     const onToggleClick = ({event, field}: onToggleClickProps) => {
         event.stopPropagation();
