@@ -192,23 +192,21 @@ function ErrataList() {
             return (
                 erratas.errataList.map((errata, rowIndex) => {
                     return (
-                        <Tbody key={errata.errata_id}>
-                            <Tr>
-                                <Td component="th" dataLabel={columnNames.errata}><Link
-                                    to={`/errata/${errata.errata_id}/change`}>{errata.errata_id}</Link></Td>
-                                <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
-                                <Td component="th" dataLabel={columnNames.task_id}>{
-                                    errata.task_id ?
-                                        <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> :
-                                        '-'
-                                }</Td>
-                                <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}
-                                                                                                        columnKey={"vulnerabilities"}/></Td>
-                                <Td component="th" dataLabel={columnNames.packages}><NestedItems data={errata}
-                                                                                                 columnKey={"packages"}/></Td>
-                                <Td dataLabel={columnNames.changed}>{Moment(errata.changed).format('D MMMM YYYY, h:mm:ss a')}</Td>
-                            </Tr>
-                        </Tbody>
+                        <Tr key={errata.errata_id}>
+                            <Td component="th" dataLabel={columnNames.errata}><Link
+                                to={`/errata/${errata.errata_id}/change`}>{errata.errata_id}</Link></Td>
+                            <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
+                            <Td component="th" dataLabel={columnNames.task_id}>{
+                                errata.task_id ?
+                                    <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> :
+                                    '-'
+                            }</Td>
+                            <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}
+                                                                                                    columnKey={"vulnerabilities"}/></Td>
+                            <Td component="th" dataLabel={columnNames.packages}><NestedItems data={errata}
+                                                                                             columnKey={"packages"}/></Td>
+                            <Td dataLabel={columnNames.changed}>{Moment(errata.changed).format('D MMMM YYYY, h:mm:ss a')}</Td>
+                        </Tr>
                     )
                 })
             )
@@ -261,7 +259,9 @@ function ErrataList() {
                         <Th width={15}>{columnNames.changed}</Th>
                     </Tr>
                 </Thead>
-                {renderRows()}
+                <Tbody>
+                    {renderRows()}
+                </Tbody>
             </Table>
             <Paginator
                 isCompact={false}
