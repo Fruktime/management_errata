@@ -22,3 +22,15 @@ export const constants = {
     VALID_ERR_TYPE: "error" as "error",
     VALID_SUC_TYPE: "success" as "success",
 }
+
+/**
+ * User events to guarantee user activity on the application
+ */
+export const events = [
+    "load",
+    "mousemove",
+    "mousedown",
+    "click",
+    "scroll",
+    "keypress",
+]
