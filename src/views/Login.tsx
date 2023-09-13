@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -16,10 +16,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import React from 'react';
-import {LoginMainHeader, LoginForm, LoginMainBody, BackgroundImage} from '@patternfly/react-core';
+import React from "react";
+import {LoginMainHeader, LoginForm, LoginMainBody, BackgroundImage} from "@patternfly/react-core";
 
-import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
+import ExclamationCircleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon";
 import {AuthContext} from "../context/AuthProvide";
 import {css} from "@patternfly/react-styles";
 import styles from "@patternfly/react-styles/css/components/Login/login";
@@ -27,24 +27,29 @@ import {observer} from "mobx-react";
 
 
 const LoginPageHideShowPassword: React.FunctionComponent = () => {
+    /** Flag whether to show help text in the authorization form. */
     const [showHelperText, setShowHelperText] = React.useState<boolean>(false);
-    const [helperText, setHelperText] = React.useState<string>('Invalid login credentials.');
-    const [username, setUsername] = React.useState<string>('');
+    /** Content displayed in the helper text component. */
+    const [helperText, setHelperText] = React.useState<string>("Invalid login credentials.");
+    /** Username from input. */
+    const [username, setUsername] = React.useState<string>("");
+    /** Flag indicating whether the username is valid. */
     const [isValidUsername, setIsValidUsername] = React.useState<boolean>(true);
-    const [password, setPassword] = React.useState<string>('');
+    /** User password from input. */
+    const [password, setPassword] = React.useState<string>("");
+    /** Flag indicating whether the user password is valid. */
     const [isValidPassword, setIsValidPassword] = React.useState<boolean>(true);
-    const [isRememberMeChecked, setIsRememberMeChecked] = React.useState<boolean>(false);
     const {auth} = React.useContext(AuthContext);
 
+    /** Function that handles the onChange event for the username */
     const handleUsernameChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
         setUsername(value);
     };
+    /** Function that handles the onChange event for the user password */
     const handlePasswordChange = (_event: React.FormEvent<HTMLInputElement>, value: string) => {
         setPassword(value);
     };
-    const onRememberMeClick = () => {
-        setIsRememberMeChecked(!isRememberMeChecked);
-    };
+    /** Function that is called when the login button is clicked */
     const onLoginButtonClick = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
 
@@ -52,11 +57,7 @@ const LoginPageHideShowPassword: React.FunctionComponent = () => {
             try {
                 await auth.login(username, password)
             } catch (e) {
-                if (e.response.status === 400) {
-                    setHelperText(e.response.data.validation_message[0]);
-                } else {
-                    setHelperText(e.response.data.message);
-                }
+                setHelperText(e.response.data.message);
                 setIsValidUsername(false);
                 setIsValidPassword(false);
                 setShowHelperText(true)
@@ -81,7 +82,6 @@ const LoginPageHideShowPassword: React.FunctionComponent = () => {
         isShowPasswordEnabled
         onChangePassword={handlePasswordChange}
         isValidPassword={isValidPassword}
-        onChangeRememberMe={onRememberMeClick}
         onLoginButtonClick={onLoginButtonClick}
         autoComplete={"test"}
         loginButtonLabel="Log in" />;
