@@ -20,3 +20,10 @@ export interface AuthResponse {
     access_token: string;
     refresh_token: string;
 }
+
+export interface IDecodeAccessToken {
+    exp: number;
+    fingerprint: string;
+    groups: string[];
+    nickname: string;
+}
