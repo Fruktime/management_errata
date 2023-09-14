@@ -9,7 +9,7 @@
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theц
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Affero General Public License for more details.
 
  You should have received a copy of the GNU Affero General Public License
@@ -19,7 +19,6 @@
 import React from "react";
 import {useParams} from "react-router-dom";
 import {constants} from "../misc";
-import ErrataPackagesChange from "./ErrataPackagesChange";
 import {
     Card,
     CardBody,
@@ -30,6 +29,8 @@ import {
     PageSection
 } from "@patternfly/react-core";
 import {SearchIcon} from "@patternfly/react-icons";
+import ErrataBranchChange from "./ErrataBranchChange";
+import ErrataPackagesChange from "./ErrataPackagesChange";
 
 
 const ErrataChange: React.FunctionComponent = (): React.ReactElement => {
@@ -41,7 +42,7 @@ const ErrataChange: React.FunctionComponent = (): React.ReactElement => {
             )
         } else {
             return (
-                <div></div>
+                <ErrataBranchChange />
             )
         }
     } else {
