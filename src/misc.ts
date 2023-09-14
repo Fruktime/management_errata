@@ -21,6 +21,8 @@ export const constants = {
     SEARCH_VAR: "q" as string,
     VALID_ERR_TYPE: "error" as "error",
     VALID_SUC_TYPE: "success" as "success",
+    ERRATA_PACKAGES_PREFIX: "ALT-PU-",
+    ERRATA_BRANCH_PREFIX: "ALT-BU-"
 }
 
 /**
