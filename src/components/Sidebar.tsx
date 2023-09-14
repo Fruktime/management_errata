@@ -44,12 +44,12 @@ export default function Sidebar() {
                 Home page
             </NavLink>
             <NavLink
-                to={"/errata-list"}
+                to={"/erratas"}
                 id={"errata-list_nav-link"}
                 className={setActive}
                 // tabIndex={isNavOpen ? undefined : -1}
             >
-                Errata list
+                Erratas
             </NavLink>
             <NavLink
                 to={"/tasks"}

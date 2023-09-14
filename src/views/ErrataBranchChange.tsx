@@ -127,7 +127,7 @@ const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
                             {errataInfo?.packages_updates.map((errata, errataIndex) => {
                                     return (
                                         <Tr key={`${errata.id}-row`}>
-                                            <Td><Link to={`/errata/${errata.id}/change`}>{errata.id}</Link></Td>
+                                            <Td><Link to={`/erratas/${errata.id}/change`}>{errata.id}</Link></Td>
                                             <Td>{errata.task_id ? <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> : "-" }</Td>
                                             <Td>
                                                 <Label

@@ -32,10 +32,10 @@ interface Routes {
 }
 
 export const privateRoutes: Routes[] = [
-    {path: '/errata-list', element: <ErrataList />},
+    {path: '/erratas', element: <ErrataList />},
     {path: '/tasks', element: <TaskList />},
     {path: '/tasks/:taskId', element: <TaskInfo />},
-    {path: '/errata/:errataId/change', element: <ErrataChange />},
+    {path: '/erratas/:errataId/change', element: <ErrataChange />},
     {path: '/', element: <Home />},
     {path: '*', element: <NotFound />},
 ]

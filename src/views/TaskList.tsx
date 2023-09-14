@@ -225,7 +225,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                                     {task.erratas.map((errata, errataIndex) => {
                                         return (
                                             <ListItem key={`${errata}-${errataIndex}`}>
-                                                <Link to={`/errata/${errata}/change`}>{errata}</Link>
+                                                <Link to={`/erratas/${errata}/change`}>{errata}</Link>
                                             </ListItem>
                                         )
                                     })}
