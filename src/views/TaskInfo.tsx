@@ -123,8 +123,12 @@ function TaskInfo() {
                                             :
                                             "-"
                                     }</Td>
-                                    <Td dataLabel="Errata created">{subtask.eh_created.substring(0, 4) !== "1970" ? Moment(subtask.eh_created).format('D MMMM YYYY, h:mm a'): "-"}</Td>
-                                    <Td dataLabel="Errata update">{subtask.eh_update.substring(0, 4) !== "1970" ? Moment(subtask.eh_update).format('D MMMM YYYY, h:mm a'): "-"}</Td>
+                                    <Td dataLabel="Errata created">
+                                        {subtask.eh_created.substring(0, 4) !== "1970" ? Moment(subtask.eh_created).format('D MMMM YYYY, h:mm a'): "-"}
+                                    </Td>
+                                    <Td dataLabel="Errata update">
+                                        {subtask.eh_update.substring(0, 4) !== "1970" ? Moment(subtask.eh_update).format('D MMMM YYYY, h:mm a'): "-"}
+                                    </Td>
                                     <Td isActionCell>
                                         <ActionList isIconList>
                                             {subtask.errata_id ?
@@ -134,7 +138,7 @@ function TaskInfo() {
                                                         variant="plain"
                                                         id="with-edit-errata-button"
                                                         aria-label="edit errata button"
-                                                        component={(props: any) => <Link {...props} to={`/errata/${subtask.errata_id}/change`} />}
+                                                        component={(props: any) => <Link {...props} to={`/erratas/${subtask.errata_id}/change`} />}
                                                     >
                                                         <Icon size="md">
                                                             <EditIcon />
@@ -143,7 +147,12 @@ function TaskInfo() {
                                                 </ActionListItem>
                                                 :
                                                 <ActionListItem>
-                                                    <Button title="Create errata" variant="plain" id="with-create-errata-button" aria-label="create errata button">
+                                                    <Button
+                                                        title="Create errata"
+                                                        variant="plain"
+                                                        id="with-create-errata-button"
+                                                        aria-label="create errata button"
+                                                    >
                                                         <Icon size="md">
                                                             <AddCircleOIcon />
                                                         </Icon>
@@ -157,7 +166,9 @@ function TaskInfo() {
                                     <Td dataLabel={`${subtask.src_pkg_name} changelog`} colSpan={8} className={"pf-v5-u-pt-0"}>
                                         <ExpandableRowContent>
                                             <Card isCompact>
-                                                <CardTitle>{Moment(subtask.chlog_date).format('D MMMM YYYY')} {subtask.chlog_name}</CardTitle>
+                                                <CardTitle>
+                                                    {Moment(subtask.chlog_date).format('D MMMM YYYY')} {subtask.chlog_name}
+                                                </CardTitle>
                                                 <CardBody><pre>{subtask.chlog_text}</pre></CardBody>
                                             </Card>
                                         </ExpandableRowContent>
