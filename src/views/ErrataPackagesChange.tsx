@@ -43,7 +43,7 @@ import {
     EmptyStateVariant,
     EmptyStateIcon, Title, Card, CardBody
 } from "@patternfly/react-core";
-import {Link, useParams} from "react-router-dom";
+import {generatePath, Link, useParams} from "react-router-dom";
 import {CheckCircleIcon, ExclamationCircleIcon, SearchIcon} from "@patternfly/react-icons";
 import {useFetching} from "../hooks/useFetching";
 import api from "../http/api";
@@ -63,6 +63,7 @@ import {IErrataHistory} from "../models/IErrataHistory";
 import {buildErrataReferences} from "../utils";
 import Loader from "../components/Loader";
 import NotFound from "./NotFound";
+import {siteRoutes} from "../routes/routes";
 
 const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => {
     /** Information about errata. */
@@ -262,7 +263,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                                 <DescriptionListTerm>Task ID:</DescriptionListTerm>
                                                 <DescriptionListDescription>
                                                     <Link
-                                                        to={`/tasks/${errataInfo?.task_id}`}
+                                                        to={generatePath(siteRoutes.taskInfo, {taskId: errataInfo.task_id})}
                                                     >
                                                         #{errataInfo?.task_id}
                                                     </Link>

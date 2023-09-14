@@ -44,13 +44,14 @@ import {TFetch, useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
 import {vulnLabelColor} from "../utils";
-import {Link, useParams} from "react-router-dom";
+import {generatePath, Link, useParams} from "react-router-dom";
 import {AddCircleOIcon, EditIcon, SearchIcon} from "@patternfly/react-icons";
 import {ITaskInfo} from "../models/TaskInfoResponse";
 import Loader from "../components/Loader";
 import Moment from "moment/moment";
 import {ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {IVulnerabilities} from "../models/IVulnerabilities";
+import {siteRoutes} from "../routes/routes";
 
 function TaskInfo() {
     const [info, setInfo] = React.useState<ITaskInfo>();
@@ -138,7 +139,7 @@ function TaskInfo() {
                                                         variant="plain"
                                                         id="with-edit-errata-button"
                                                         aria-label="edit errata button"
-                                                        component={(props: any) => <Link {...props} to={`/erratas/${subtask.errata_id}/change`} />}
+                                                        component={(props: any) => <Link {...props} to={generatePath(siteRoutes.errataInfo, {errataId: subtask.errata_id})} />}
                                                     >
                                                         <Icon size="md">
                                                             <EditIcon />

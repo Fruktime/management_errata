@@ -31,15 +31,24 @@ interface Routes {
     element: ReactElement;
 }
 
+export const siteRoutes = {
+    erratas: "/erratas",
+    errataInfo: "/erratas/:errataId/change",
+    tasks: "/tasks",
+    taskInfo: "/tasks/:taskId",
+    home: "/",
+    login: "/login"
+}
+
 export const privateRoutes: Routes[] = [
-    {path: '/erratas', element: <ErrataList />},
-    {path: '/tasks', element: <TaskList />},
-    {path: '/tasks/:taskId', element: <TaskInfo />},
-    {path: '/erratas/:errataId/change', element: <ErrataChange />},
-    {path: '/', element: <Home />},
-    {path: '*', element: <NotFound />},
+    {path: siteRoutes.erratas, element: <ErrataList />},
+    {path: siteRoutes.tasks, element: <TaskList />},
+    {path: siteRoutes.taskInfo, element: <TaskInfo />},
+    {path: siteRoutes.errataInfo, element: <ErrataChange />},
+    {path: siteRoutes.home, element: <Home />},
+    {path: "*", element: <NotFound />},
 ]
 
 export const publicRoutes: Routes[] = [
-    { path: '/login', element: <LoginPageHideShowPassword />},
+    { path: siteRoutes.login, element: <LoginPageHideShowPassword />},
 ]

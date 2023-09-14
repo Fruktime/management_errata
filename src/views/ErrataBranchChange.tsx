@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import React from "react";
-import {Link, useParams} from "react-router-dom";
+import {generatePath, Link, useParams} from "react-router-dom";
 import {useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
@@ -34,6 +34,7 @@ import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {IBug, IVulns} from "../models/ErrataPackageUpdatesResponse";
 import Loader from "../components/Loader";
 import NotFound from "./NotFound";
+import {siteRoutes} from "../routes/routes";
 
 const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
     const [errataInfo, setErrataInfo] = React.useState<IErrataBranchUpdates>()
@@ -127,8 +128,8 @@ const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
                             {errataInfo?.packages_updates.map((errata, errataIndex) => {
                                     return (
                                         <Tr key={`${errata.id}-row`}>
-                                            <Td><Link to={`/erratas/${errata.id}/change`}>{errata.id}</Link></Td>
-                                            <Td>{errata.task_id ? <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> : "-" }</Td>
+                                            <Td><Link to={generatePath(siteRoutes.errataInfo, {errataId: errata.id})}>{errata.id}</Link></Td>
+                                            <Td>{errata.task_id ? <Link to={generatePath(siteRoutes.taskInfo, {taskId: errata.task_id})}>{errata.task_id}</Link> : "-" }</Td>
                                             <Td>
                                                 <Label
                                                     key={errata.pkg_hash}

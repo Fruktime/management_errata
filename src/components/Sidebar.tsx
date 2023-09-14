@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -17,26 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import React from 'react';
-import {Nav, NavItem, NavList, PageSidebar, PageSidebarBody} from "@patternfly/react-core";
+import {Nav, NavList, PageSidebar, PageSidebarBody} from "@patternfly/react-core";
 import {NavLink} from "react-router-dom";
+import {siteRoutes} from "../routes/routes";
 
-interface NavOnSelectProps {
-    groupId: number | string;
-    itemId: number | string;
-    to: string;
-}
 
 export default function Sidebar() {
     const setActive = ({isActive}: { isActive: boolean }): string => (isActive ? "pf-v5-c-nav__link pf-m-current" : "pf-v5-c-nav__link");
-    //
-    // const onNavSelect = (_event: React.FormEvent<HTMLInputElement>, selectedItem: NavOnSelectProps) => {
-    //     typeof selectedItem.itemId === 'number' && setActiveItem(selectedItem.itemId);
-    // };
 
     const pageNav = <Nav aria-label="Side Nav">
         <NavList>
             <NavLink
-                to={"/"}
+                to={siteRoutes.home}
                 id={"home-page_nav-link"}
                 className={setActive}
                 // tabIndex={isNavOpen ? undefined : -1}
@@ -44,15 +36,15 @@ export default function Sidebar() {
                 Home page
             </NavLink>
             <NavLink
-                to={"/erratas"}
-                id={"errata-list_nav-link"}
+                to={siteRoutes.erratas}
+                id={"erratas_nav-link"}
                 className={setActive}
                 // tabIndex={isNavOpen ? undefined : -1}
             >
                 Erratas
             </NavLink>
             <NavLink
-                to={"/tasks"}
+                to={siteRoutes.tasks}
                 id={"tasks_nav-link"}
                 className={setActive}
                 // tabIndex={isNavOpen ? undefined : -1}

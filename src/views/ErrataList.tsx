@@ -41,7 +41,7 @@ import {MenuToggleElement, PaginationVariant} from "@patternfly/react-core/compo
 import {ErrataListElement} from "../models/ErrataListResponse";
 import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
 import {vulnLabelColor} from "../utils";
-import {Link, useNavigate} from "react-router-dom";
+import {generatePath, Link, useNavigate} from "react-router-dom";
 import {Paginator} from "../components/Paginator";
 import paginatorStore from "../stores/paginatorStore";
 import {observer} from "mobx-react";
@@ -50,6 +50,7 @@ import errataListStore from "../stores/errataListStore";
 import searchStore from "../stores/searchStore";
 import {constants} from "../misc";
 import {Search} from "../components/Search";
+import {siteRoutes} from "../routes/routes";
 
 interface NestedItemsProps {
     data: ErrataListElement;
@@ -194,11 +195,11 @@ function ErrataList() {
                     return (
                         <Tr key={errata.errata_id}>
                             <Td component="th" dataLabel={columnNames.errata}><Link
-                                to={`/erratas/${errata.errata_id}/change`}>{errata.errata_id}</Link></Td>
+                                to={generatePath(siteRoutes.errataInfo, {errataId: errata.errata_id})}>{errata.errata_id}</Link></Td>
                             <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
                             <Td component="th" dataLabel={columnNames.task_id}>{
                                 errata.task_id ?
-                                    <Link to={`/tasks/${errata.task_id}`}>{errata.task_id}</Link> :
+                                    <Link to={generatePath(siteRoutes.taskInfo, {taskId: errata.task_id})}>{errata.task_id}</Link> :
                                     '-'
                             }</Td>
                             <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}

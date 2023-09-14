@@ -41,7 +41,7 @@ import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Moment from "moment/moment";
 import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
 import {vulnLabelColor, smartSplit} from "../utils";
-import {Link, useNavigate} from "react-router-dom";
+import {generatePath, Link, useNavigate} from "react-router-dom";
 import {Paginator} from "../components/Paginator";
 import paginatorStore from "../stores/paginatorStore";
 import {observer} from "mobx-react";
@@ -50,6 +50,7 @@ import {Search} from "../components/Search";
 import searchStore from "../stores/searchStore";
 import {constants} from "../misc";
 import {useQuery} from "../hooks/useQuery";
+import {siteRoutes} from "../routes/routes";
 
 interface NestedItemsProps {
     data: TaskListElement;
@@ -205,7 +206,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                     return (
                         <Tr key={task.task_id}>
                             <Td component="th" dataLabel={columnNames.task_id}>
-                                <Link to={`/tasks/${task.task_id}`}>{task.task_id}</Link>
+                                <Link to={generatePath(siteRoutes.taskInfo, {taskId: task.task_id})}>{task.task_id}</Link>
                             </Td>
                             <Td component="th" dataLabel={columnNames.branch}>{task.branch}</Td>
                             <Td component="th" dataLabel={columnNames.branch}>
@@ -225,7 +226,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                                     {task.erratas.map((errata, errataIndex) => {
                                         return (
                                             <ListItem key={`${errata}-${errataIndex}`}>
-                                                <Link to={`/erratas/${errata}/change`}>{errata}</Link>
+                                                <Link to={generatePath(siteRoutes.errataInfo, {errataId: errata})}>{errata}</Link>
                                             </ListItem>
                                         )
                                     })}
