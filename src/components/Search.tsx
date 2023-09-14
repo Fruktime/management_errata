@@ -81,7 +81,7 @@ export const Search: React.FunctionComponent<SearchProps> = ({
             searchStore.setError("");
         } else if (value.length < 2) {
             searchStore.setError("The input should not be shorter than 2 characters.");
-        } else if (!/^[A-Za-z0-9#.@_:+ ]+$/.test(value)) {
+        } else if (!/^[A-Za-z0-9#.@_\-:+ ]+$/.test(value)) {
             searchStore.setError("The input must match: [A-Za-z0-9#.@_:+ ].");
         } else if (splitValue.length > 4) {
             searchStore.setError("Input values list should contain no more than 4 elements.");
