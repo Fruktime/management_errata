@@ -23,6 +23,7 @@ import ErrataList from "../views/ErrataList";
 import TaskList from "../views/TaskList";
 import TaskInfo from "../views/TaskInfo";
 import ErrataChange from "../views/ErrataChange";
+import NotFound from "../views/NotFound";
 
 
 interface Routes {
@@ -36,6 +37,7 @@ export const privateRoutes: Routes[] = [
     {path: '/tasks/:taskId', element: <TaskInfo />},
     {path: '/errata/:errataId/change', element: <ErrataChange />},
     {path: '/', element: <Home />},
+    {path: '*', element: <NotFound />},
 ]
 
 export const publicRoutes: Routes[] = [
