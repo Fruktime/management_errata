@@ -41,7 +41,7 @@ import {
     Bullseye,
     EmptyState,
     EmptyStateVariant,
-    EmptyStateIcon, Title
+    EmptyStateIcon, Title, Card, CardBody
 } from "@patternfly/react-core";
 import {Link, useParams} from "react-router-dom";
 import {CheckCircleIcon, ExclamationCircleIcon, SearchIcon} from "@patternfly/react-icons";
@@ -61,6 +61,8 @@ import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import AddVulnsForm from "../components/forms/AddVulnsForm";
 import {IErrataHistory} from "../models/IErrataHistory";
 import {buildErrataReferences} from "../utils";
+import Loader from "../components/Loader";
+import NotFound from "./NotFound";
 
 const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => {
     /** Information about errata. */
@@ -174,236 +176,235 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
 
     /** Table body rendering component */
     const RenderRows: React.FunctionComponent = (): React.ReactElement => {
-        if (searchVulns.length > 0) {
-            return (
-                <React.Fragment>
-                    {searchVulns.map((vuln, vulnIndex) => {
-                        return (
-                            <Tr key={vuln.id}>
-                                <Td dataLabel={columnNames.is_valid}>
-                                    {!vuln.is_valid ? <ExclamationCircleIcon color={"red"}/> :
-                                        <CheckCircleIcon color={"green"}/>}
-                                </Td>
-                                <Td dataLabel={columnNames.id}>{vuln.id}</Td>
-                                <Td dataLabel={columnNames.summary}>{vuln.summary}</Td>
-                                <Td dataLabel={columnNames.url}>
-                                    {"url" in vuln ?
-                                        <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
-                                        <Link
-                                            target="_blank"
-                                            to={`https://bugzilla.altlinux.org/${vuln.id}`}
-                                        >
-                                            {`https://bugzilla.altlinux.org/${vuln.id}`}
-                                        </Link>
-                                    }
-                                </Td>
-                                <Td
-                                    dataLabel={columnNames.published_date}
-                                >
-                                    {
-                                        "published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ?
-                                            Moment(vuln.published_date).format("D MMMM YYYY") :
-                                            "-"
-                                    }
-                                </Td>
-                                <Td
-                                    dataLabel={columnNames.modified_date}
-                                >
-                                    {
-                                        "modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ?
-                                            Moment(vuln.modified_date).format("D MMMM YYYY") :
-                                            "-"
-                                    }
-                                </Td>
-                                <Td
-                                    select={{
-                                        rowIndex: vulnIndex,
-                                        onSelect: (_event, isSelecting) => setSelected(vuln, isSelecting),
-                                        isSelected: isVulnSelected(vuln)
-                                    }}
-                                />
-                            </Tr>
-                        )
-                    })}
-                </React.Fragment>
-            )
-        } else {
-            return (
-                <Tr>
-                    <Td colSpan={Object.keys(columnNames).length + 1}>
-                        <Bullseye>
-                            <EmptyState variant={EmptyStateVariant.sm}>
-                                <EmptyStateIcon icon={SearchIcon}/>
-                                <Title headingLevel="h2" size="lg">
-                                    No results found
-                                </Title>
-                            </EmptyState>
-                        </Bullseye>
-                    </Td>
-                </Tr>
-            )
-        }
+        return (
+            <React.Fragment>
+                {searchVulns.map((vuln, vulnIndex) => {
+                    return (
+                        <Tr key={vuln.id}>
+                            <Td dataLabel={columnNames.is_valid}>
+                                {!vuln.is_valid ? <ExclamationCircleIcon color={"red"}/> :
+                                    <CheckCircleIcon color={"green"}/>}
+                            </Td>
+                            <Td dataLabel={columnNames.id}>{vuln.id}</Td>
+                            <Td dataLabel={columnNames.summary}>{vuln.summary}</Td>
+                            <Td dataLabel={columnNames.url}>
+                                {"url" in vuln ?
+                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
+                                    <Link
+                                        target="_blank"
+                                        to={`https://bugzilla.altlinux.org/${vuln.id}`}
+                                    >
+                                        {`https://bugzilla.altlinux.org/${vuln.id}`}
+                                    </Link>
+                                }
+                            </Td>
+                            <Td
+                                dataLabel={columnNames.published_date}
+                            >
+                                {
+                                    "published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ?
+                                        Moment(vuln.published_date).format("D MMMM YYYY") :
+                                        "-"
+                                }
+                            </Td>
+                            <Td
+                                dataLabel={columnNames.modified_date}
+                            >
+                                {
+                                    "modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ?
+                                        Moment(vuln.modified_date).format("D MMMM YYYY") :
+                                        "-"
+                                }
+                            </Td>
+                            <Td
+                                select={{
+                                    rowIndex: vulnIndex,
+                                    onSelect: (_event, isSelecting) => setSelected(vuln, isSelecting),
+                                    isSelected: isVulnSelected(vuln)
+                                }}
+                            />
+                        </Tr>
+                    )
+                })}
+            </React.Fragment>
+        )
     }
 
+    if (packageUpdates.isLoading) {
+        return (
+            <PageSection isCenterAligned>
+                <Card>
+                    <CardBody>
+                        <Loader/>
+                    </CardBody>
+                </Card>
+            </PageSection>
+        )
+    } else if (packageUpdates.error) {
+        return (
+            <NotFound />
+        )
+    } else {
+        return (
+            <React.Fragment>
+                <PageSection type={PageSectionTypes.wizard}>
+                    <div className={css(styles.wizard)}>
+                        <div className={css(styles.wizardOuterWrap, "pf-v5-u-pl-0")}>
+                            <div className={css(styles.wizardInnerWrap)}>
+                                <WizardBody>
+                                    <TextContent>
+                                        <Text component="h1">Change errata {errataId}</Text>
+                                    </TextContent>
 
-    return (
-        <React.Fragment>
-            <PageSection type={PageSectionTypes.wizard}>
-                <div className={css(styles.wizard)}>
-                    <div className={css(styles.wizardOuterWrap, "pf-v5-u-pl-0")}>
-                        <div className={css(styles.wizardInnerWrap)}>
-                            <WizardBody>
-                                <TextContent>
-                                    <Text component="h1">Change errata {errataId}</Text>
-                                </TextContent>
-
-                                <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
-                                    {errataInfo?.task_id && errataInfo?.task_id !== 0 ?
+                                    <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
+                                        {errataInfo?.task_id && errataInfo?.task_id !== 0 ?
+                                            <DescriptionListGroup>
+                                                <DescriptionListTerm>Task ID:</DescriptionListTerm>
+                                                <DescriptionListDescription>
+                                                    <Link
+                                                        to={`/tasks/${errataInfo?.task_id}`}
+                                                    >
+                                                        #{errataInfo?.task_id}
+                                                    </Link>
+                                                </DescriptionListDescription>
+                                            </DescriptionListGroup>
+                                            :
+                                            undefined
+                                        }
                                         <DescriptionListGroup>
-                                            <DescriptionListTerm>Task ID:</DescriptionListTerm>
+                                            <DescriptionListTerm>Package name:</DescriptionListTerm>
                                             <DescriptionListDescription>
                                                 <Link
-                                                    to={`/tasks/${errataInfo?.task_id}`}
+                                                    target="_blank"
+                                                    to={`https://packages.altlinux.org/en/${errataInfo?.pkgset_name}/srpms/${errataInfo?.pkg_name}/${errataInfo?.pkg_hash}`}
                                                 >
-                                                    #{errataInfo?.task_id}
+                                                    {errataInfo?.pkg_name}
                                                 </Link>
                                             </DescriptionListDescription>
                                         </DescriptionListGroup>
-                                        :
-                                        undefined
-                                    }
-                                    <DescriptionListGroup>
-                                        <DescriptionListTerm>Package name:</DescriptionListTerm>
-                                        <DescriptionListDescription>
-                                            <Link
-                                                target="_blank"
-                                                to={`https://packages.altlinux.org/en/${errataInfo?.pkgset_name}/srpms/${errataInfo?.pkg_name}/${errataInfo?.pkg_hash}`}
+                                        <DescriptionListGroup>
+                                            <DescriptionListTerm>Package version:</DescriptionListTerm>
+                                            <DescriptionListDescription>
+                                                {errataInfo?.pkg_version}-{errataInfo?.pkg_release}
+                                            </DescriptionListDescription>
+                                        </DescriptionListGroup>
+                                        <DescriptionListGroup>
+                                            <DescriptionListTerm>Errata created date: </DescriptionListTerm>
+                                            <DescriptionListDescription>
+                                                {Moment(errataInfo?.created).format("D MMMM YYYY")}
+                                            </DescriptionListDescription>
+                                        </DescriptionListGroup>
+                                        <DescriptionListGroup>
+                                            <DescriptionListTerm>Errata updated date: </DescriptionListTerm>
+                                            <DescriptionListDescription>
+                                                {Moment(errataInfo?.updated).format("D MMMM YYYY")}
+                                            </DescriptionListDescription>
+                                        </DescriptionListGroup>
+                                    </DescriptionList>
+
+                                    <Toolbar clearAllFilters={() => onSearchInputChange("")}>
+                                        <ToolbarContent>
+                                            <ToolbarFilter
+                                                key={"toolbar-search-tss"}
+                                                chips={searchInputValue !== "" ? [searchInputValue] : []}
+                                                deleteChip={() => {
+                                                    onSearchInputChange("")
+                                                }}
+                                                categoryName="Search"
+                                                showToolbarItem={true}
                                             >
-                                                {errataInfo?.pkg_name}
-                                            </Link>
-                                        </DescriptionListDescription>
-                                    </DescriptionListGroup>
-                                    <DescriptionListGroup>
-                                        <DescriptionListTerm>Package version:</DescriptionListTerm>
-                                        <DescriptionListDescription>
-                                            {errataInfo?.pkg_version}-{errataInfo?.pkg_release}
-                                        </DescriptionListDescription>
-                                    </DescriptionListGroup>
-                                    <DescriptionListGroup>
-                                        <DescriptionListTerm>Errata created date: </DescriptionListTerm>
-                                        <DescriptionListDescription>
-                                            {Moment(errataInfo?.created).format("D MMMM YYYY")}
-                                        </DescriptionListDescription>
-                                    </DescriptionListGroup>
-                                    <DescriptionListGroup>
-                                        <DescriptionListTerm>Errata updated date: </DescriptionListTerm>
-                                        <DescriptionListDescription>
-                                            {Moment(errataInfo?.updated).format("D MMMM YYYY")}
-                                        </DescriptionListDescription>
-                                    </DescriptionListGroup>
-                                </DescriptionList>
+                                                <FormGroup>
+                                                    <SearchInput
+                                                        className={"toolbar-search-input"}
+                                                        aria-label="Find vulnerabilities"
+                                                        placeholder="Find vulnerabilities"
+                                                        onChange={(_event, value) => onSearchInputChange(value)}
+                                                        value={searchInputValue}
+                                                        onClear={() => onSearchInputChange("")}
+                                                        onSearch={(event, value) => onSearchInputChange(value)}
+                                                    />
+                                                </FormGroup>
 
-                                <Toolbar clearAllFilters={() => onSearchInputChange("")}>
-                                    <ToolbarContent>
-                                        <ToolbarFilter
-                                            key={"toolbar-search-tss"}
-                                            chips={searchInputValue !== "" ? [searchInputValue] : []}
-                                            deleteChip={() => {
-                                                onSearchInputChange("")
-                                            }}
-                                            categoryName="Search"
-                                            showToolbarItem={true}
-                                        >
-                                            <FormGroup>
-                                                <SearchInput
-                                                    className={"toolbar-search-input"}
-                                                    aria-label="Find vulnerabilities"
-                                                    placeholder="Find vulnerabilities"
-                                                    onChange={(_event, value) => onSearchInputChange(value)}
-                                                    value={searchInputValue}
-                                                    onClear={() => onSearchInputChange("")}
-                                                    onSearch={(event, value) => onSearchInputChange(value)}
-                                                />
-                                            </FormGroup>
+                                            </ToolbarFilter>
+                                        </ToolbarContent>
+                                    </Toolbar>
 
-                                        </ToolbarFilter>
-                                    </ToolbarContent>
-                                </Toolbar>
+                                    <Table variant={"compact"} isStickyHeader>
+                                        <Thead>
+                                            <Tr>
+                                                <Th>{columnNames.is_valid}</Th>
+                                                <Th width={15}>{columnNames.id}</Th>
+                                                <Th>{columnNames.summary}</Th>
+                                                <Th>{columnNames.url}</Th>
+                                                <Th width={10}>{columnNames.published_date}</Th>
+                                                <Th width={10}>{columnNames.modified_date}</Th>
+                                                <Th>
+                                                    <HelperText>
+                                                        <HelperTextItem variant="error">Delete?</HelperTextItem>
+                                                    </HelperText>
+                                                </Th>
+                                            </Tr>
+                                        </Thead>
+                                        <Tbody key={"vulnerability-list"}>
+                                            <RenderRows/>
+                                        </Tbody>
+                                    </Table>
+                                </WizardBody>
+                            </div>
 
-                                <Table variant={"compact"} isStickyHeader>
-                                    <Thead>
-                                        <Tr>
-                                            <Th>{columnNames.is_valid}</Th>
-                                            <Th width={15}>{columnNames.id}</Th>
-                                            <Th>{columnNames.summary}</Th>
-                                            <Th>{columnNames.url}</Th>
-                                            <Th width={10}>{columnNames.published_date}</Th>
-                                            <Th width={10}>{columnNames.modified_date}</Th>
-                                            <Th>
-                                                <HelperText>
-                                                    <HelperTextItem variant="error">Delete?</HelperTextItem>
-                                                </HelperText>
-                                            </Th>
-                                        </Tr>
-                                    </Thead>
-                                    <Tbody key={"vulnerability-list"}>
-                                        <RenderRows />
-                                    </Tbody>
-                                </Table>
-                            </WizardBody>
+                            <WizardFooterWrapper>
+                                <Flex justifyContent={{default: "justifyContentSpaceBetween"}}
+                                      style={{"width": "100%"}}>
+                                    <FlexItem>
+                                        <Flex>
+                                            <Button
+                                                key={"save-errata"}
+                                                variant={"primary"}
+                                                className={"pf-v5-u-mr-sm"}
+                                                onClick={saveErrata}
+                                            >
+                                                Save
+                                            </Button>
+                                            <Button
+                                                key={"save-and-continue-errata"}
+                                                variant={"primary"}
+                                            >
+                                                Save and continue
+                                            </Button>
+                                        </Flex>
+                                    </FlexItem>
+                                    <FlexItem>
+                                        <Flex>
+                                            <Button
+                                                key={"add-vulns-as-list"}
+                                                variant={"primary"}
+                                                onClick={(event) => handleModalToggle(event, "asList")}
+                                                className={"pf-v5-u-mr-sm"}
+                                            >
+                                                Add vulnerabilities as a list
+                                            </Button>
+                                            <Button key={"discard-errata"} variant={"danger"}>
+                                                Discard Errata
+                                            </Button>
+                                        </Flex>
+                                    </FlexItem>
+                                </Flex>
+                            </WizardFooterWrapper>
                         </div>
-
-                        <WizardFooterWrapper>
-                            <Flex justifyContent={{default: "justifyContentSpaceBetween"}} style={{"width": "100%"}}>
-                                <FlexItem>
-                                    <Flex>
-                                        <Button
-                                            key={"save-errata"}
-                                            variant={"primary"}
-                                            className={"pf-v5-u-mr-sm"}
-                                            onClick={saveErrata}
-                                        >
-                                            Save
-                                        </Button>
-                                        <Button
-                                            key={"save-and-continue-errata"}
-                                            variant={"primary"}
-                                        >
-                                            Save and continue
-                                        </Button>
-                                    </Flex>
-                                </FlexItem>
-                                <FlexItem>
-                                    <Flex>
-                                        <Button
-                                            key={"add-vulns-as-list"}
-                                            variant={"primary"}
-                                            onClick={(event) => handleModalToggle(event, "asList")}
-                                            className={"pf-v5-u-mr-sm"}
-                                        >
-                                            Add vulnerabilities as a list
-                                        </Button>
-                                        <Button key={"discard-errata"} variant={"danger"}>
-                                            Discard Errata
-                                        </Button>
-                                    </Flex>
-                                </FlexItem>
-                            </Flex>
-                        </WizardFooterWrapper>
                     </div>
-                </div>
 
-                <AddVulnsForm
-                    setListAddedVulns={setVulnList}
-                    isOpen={isModalOpen}
-                    handleToggle={handleModalToggle}
-                    title={"Add vulnerability"}
-                    ariaLabel={"Add vulnerability"}
-                    variant={variantAddVulns}
-                />
-            </PageSection>
-        </React.Fragment>
-    );
+                    <AddVulnsForm
+                        setListAddedVulns={setVulnList}
+                        isOpen={isModalOpen}
+                        handleToggle={handleModalToggle}
+                        title={"Add vulnerability"}
+                        ariaLabel={"Add vulnerability"}
+                        variant={variantAddVulns}
+                    />
+                </PageSection>
+            </React.Fragment>
+        );
+    }
 };
 
 export default ErrataPackagesChange;
