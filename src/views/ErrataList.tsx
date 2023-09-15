@@ -40,7 +40,6 @@ import Loader from "../components/Loader";
 import {MenuToggleElement, PaginationVariant} from "@patternfly/react-core/components";
 import {ErrataListElement} from "../models/ErrataListResponse";
 import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
-import {vulnLabelColor} from "../utils";
 import {generatePath, Link, useNavigate} from "react-router-dom";
 import {Paginator} from "../components/Paginator";
 import paginatorStore from "../stores/paginatorStore";
@@ -51,6 +50,7 @@ import searchStore from "../stores/searchStore";
 import {constants} from "../misc";
 import {Search} from "../components/Search";
 import {siteRoutes} from "../routes/routes";
+import VulnLabel from "../components/VulnLabel";
 
 interface NestedItemsProps {
     data: ErrataListElement;
@@ -135,7 +135,7 @@ function ErrataList() {
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
                             return (
-                                <Label key={vuln.id} color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
+                                <VulnLabel key={`vuln-label-${vuln.id}`} vuln_id={vuln.id} />
                             )
                         }
                     )}
@@ -152,9 +152,11 @@ function ErrataList() {
                                     render={({className, content, componentRef}) => (
                                         <Link
                                             target="_blank"
-                                            to={`https://packages.altlinux.org/en/${data.branch}/srpms/${pkg.pkg_name}/${pkg.pkghash}`}
+                                            to={`${constants.PACKAGES_URL}/${data.branch}/srpms/${pkg.pkg_name}/${pkg.pkghash}`}
                                             className={className}
-                                        >{content}</Link>
+                                        >
+                                            {content}
+                                        </Link>
                                     )}
                                 >{pkg.pkg_name}</Label>
                             )
@@ -194,18 +196,25 @@ function ErrataList() {
                 erratas.errataList.map((errata, rowIndex) => {
                     return (
                         <Tr key={errata.errata_id}>
-                            <Td component="th" dataLabel={columnNames.errata}><Link
-                                to={generatePath(siteRoutes.errataInfo, {errataId: errata.errata_id})}>{errata.errata_id}</Link></Td>
+                            <Td component="th"
+                                dataLabel={columnNames.errata}
+                            >
+                                <Link  to={generatePath(siteRoutes.errataInfo, {errataId: errata.errata_id})}>
+                                    {errata.errata_id}
+                                </Link>
+                            </Td>
                             <Td component="th" dataLabel={columnNames.branch}>{errata.branch}</Td>
                             <Td component="th" dataLabel={columnNames.task_id}>{
                                 errata.task_id ?
                                     <Link to={generatePath(siteRoutes.taskInfo, {taskId: errata.task_id})}>{errata.task_id}</Link> :
                                     '-'
                             }</Td>
-                            <Td component="th" dataLabel={columnNames.vulnerabilities}><NestedItems data={errata}
-                                                                                                    columnKey={"vulnerabilities"}/></Td>
-                            <Td component="th" dataLabel={columnNames.packages}><NestedItems data={errata}
-                                                                                             columnKey={"packages"}/></Td>
+                            <Td component="th" dataLabel={columnNames.vulnerabilities}>
+                                <NestedItems data={errata} columnKey={"vulnerabilities"}/>
+                            </Td>
+                            <Td component="th" dataLabel={columnNames.packages}>
+                                <NestedItems data={errata} columnKey={"packages"}/>
+                            </Td>
                             <Td dataLabel={columnNames.changed}>{Moment(errata.changed).format('D MMMM YYYY, h:mm:ss a')}</Td>
                         </Tr>
                     )
