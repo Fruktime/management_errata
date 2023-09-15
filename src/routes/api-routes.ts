@@ -28,6 +28,8 @@ interface IApiRoutes {
     errataPackagesUpdates: string;
     errataBranchesUpdates: string;
     vulns: string;
+    cveInfo: string;
+    bduInfo: string;
 }
 
 export const routes: IApiRoutes = {
@@ -42,4 +44,6 @@ export const routes: IApiRoutes = {
     errataPackagesUpdates: "/errata/packages_updates",
     errataBranchesUpdates: "/errata/branches_updates",
     vulns: "/management/vulns",
+    cveInfo: "/vuln/cve",
+    bduInfo: "/vuln/bdu",
 }
