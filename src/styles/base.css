@@ -15,3 +15,13 @@ pre {
     white-space: -o-pre-wrap;
     word-wrap: break-word;
 }
+
+.pf-v5-c-description-list.pf-m-compact {
+    --pf-v5-c-description-list--RowGap: 0.5rem !important;
+}
+
+.pf-v5-c-tooltip {
+    --pf-v5-c-tooltip__content--BackgroundColor: #fff !important;
+    --pf-v5-c-tooltip__arrow--BackgroundColor: #fff !important;
+    --pf-v5-c-tooltip__content--Color: #151515 !important;
+}
