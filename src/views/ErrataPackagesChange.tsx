@@ -38,13 +38,10 @@ import {
     ToolbarFilter,
     WizardFooterWrapper,
     WizardBody,
-    Bullseye,
-    EmptyState,
-    EmptyStateVariant,
-    EmptyStateIcon, Title, Card, CardBody
+    Card, CardBody
 } from "@patternfly/react-core";
 import {generatePath, Link, useParams} from "react-router-dom";
-import {CheckCircleIcon, ExclamationCircleIcon, SearchIcon} from "@patternfly/react-icons";
+import {CheckCircleIcon, ExclamationCircleIcon} from "@patternfly/react-icons";
 import {useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
@@ -64,6 +61,7 @@ import {buildErrataReferences} from "../utils";
 import Loader from "../components/Loader";
 import NotFound from "./NotFound";
 import {siteRoutes} from "../routes/routes";
+import {constants} from "../misc";
 
 const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => {
     /** Information about errata. */
@@ -193,9 +191,9 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                     <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
                                     <Link
                                         target="_blank"
-                                        to={`https://bugzilla.altlinux.org/${vuln.id}`}
+                                        to={`${constants.BUGZILLA_URL}/${vuln.id}`}
                                     >
-                                        {`https://bugzilla.altlinux.org/${vuln.id}`}
+                                        {`${constants.BUGZILLA_URL}/${vuln.id}`}
                                     </Link>
                                 }
                             </Td>
@@ -277,7 +275,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                             <DescriptionListDescription>
                                                 <Link
                                                     target="_blank"
-                                                    to={`https://packages.altlinux.org/en/${errataInfo?.pkgset_name}/srpms/${errataInfo?.pkg_name}/${errataInfo?.pkg_hash}`}
+                                                    to={`${constants.PACKAGES_URL}/${errataInfo?.pkgset_name}/srpms/${errataInfo?.pkg_name}/${errataInfo?.pkg_hash}`}
                                                 >
                                                     {errataInfo?.pkg_name}
                                                 </Link>
