@@ -115,7 +115,7 @@ const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.Re
                     >{content}</Link>
                 )}
             >
-                {vuln_id}
+                {isDigit(vuln_id) ? `#${vuln_id}` : vuln_id}
             </Label>
         )
     }
@@ -147,7 +147,7 @@ const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.Re
                     >{content}</Link>
                 )}
             >
-                {vuln_id}
+                {isDigit(vuln_id) ? `#${vuln_id}` : vuln_id}
             </Label>
         </Tooltip>
     )
