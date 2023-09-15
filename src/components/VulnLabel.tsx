@@ -21,7 +21,7 @@ import {Label, Spinner, Tooltip} from "@patternfly/react-core";
 import {useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
-import {isDigit, vulnLabelColor} from "../utils";
+import {isDigit} from "../utils";
 import {constants} from "../misc";
 import axios from "axios";
 import {generatePath, Link} from "react-router-dom";
@@ -34,15 +34,15 @@ interface VulnLabelProps {
 const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.ReactElement => {
     /** Vulnerability summary. */
     const [summary, setSummary] = React.useState<string>("");
-    /** Vulnerability type ("errata" | "vuln" | "bug"). */
-    const [vulnType, setVulnType] = React.useState<"errata" | "vuln" | "bug">("errata");
 
     /** Get the vulnerability type based on its ID. */
     const getVulnType = () => {
         if (vuln_id.startsWith(constants.CVE_PREFIX) || vuln_id.startsWith(constants.BDU_PREFIX) || vuln_id.startsWith(constants.MFSA_PREFIX)) {
-            setVulnType("vuln")
+            return "red"
         } else if (isDigit(vuln_id)) {
-            setVulnType("bug")
+            return "blue"
+        } else {
+            return "gold"
         }
     };
 
@@ -63,10 +63,6 @@ const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.Re
             return "#"
         }
     }
-
-    React.useEffect(() => {
-        getVulnType();
-    });
 
     const vuln = useFetching(async () => {
         if (vuln_id.startsWith(constants.CVE_PREFIX)) {
@@ -109,7 +105,7 @@ const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.Re
         return (
             <Label
                 key={`label-${vuln_id}`}
-                color={vulnLabelColor(vulnType)}
+                color={getVulnType()}
                 onMouseEnter={mouseEnter}
                 render={({className, content, componentRef}) => (
                     <Link
@@ -141,7 +137,7 @@ const VulnLabel: React.FunctionComponent<VulnLabelProps> = ({vuln_id}): React.Re
         >
             <Label
                 key={`label-${vuln_id}`}
-                color={vulnLabelColor(vulnType)}
+                color={getVulnType()}
                 onMouseEnter={mouseEnter}
                 render={({className, content, componentRef}) => (
                     <Link
