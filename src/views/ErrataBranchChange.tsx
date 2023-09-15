@@ -35,6 +35,8 @@ import {IBug, IVulns} from "../models/ErrataPackageUpdatesResponse";
 import Loader from "../components/Loader";
 import NotFound from "./NotFound";
 import {siteRoutes} from "../routes/routes";
+import {constants} from "../misc";
+import VulnLabel from "../components/VulnLabel";
 
 const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
     const [errataInfo, setErrataInfo] = React.useState<IErrataBranchUpdates>()
@@ -72,15 +74,13 @@ const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
             <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                 {vulns.map((vuln, vulnIndex) => {
                         return (
-                            <Label key={`${vuln.id}-${vulnIndex}`}
-                                   color={"red"}>{vuln.id}</Label>
+                            <VulnLabel key={`vuln-label-${vuln.id}-${vulnIndex}`} vuln_id={vuln.id} />
                         )
                     }
                 )}
                 {bugs.map((bug, bugIndex) => {
                         return (
-                            <Label key={`${bug.id}-${bugIndex}`}
-                                   color={"blue"}>#{bug.id}</Label>
+                            <VulnLabel key={`vuln-label-${bug.id}-${bugIndex}`} vuln_id={bug.id.toString()} />
                         )
                     }
                 )}
@@ -137,7 +137,7 @@ const ErrataBranchChange: React.FunctionComponent = (): React.ReactElement => {
                                                     render={({className, content, componentRef}) => (
                                                         <Link
                                                             target="_blank"
-                                                            to={`https://packages.altlinux.org/en/${errata.pkgset_name}/srpms/${errata.pkg_name}/${errata.pkg_hash}`}
+                                                            to={`${constants.PACKAGES_URL}/${errata.pkgset_name}/srpms/${errata.pkg_name}/${errata.pkg_hash}`}
                                                             className={className}
                                                         >{content}</Link>
                                                     )}
