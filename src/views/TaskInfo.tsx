@@ -43,7 +43,6 @@ import {
 import {TFetch, useFetching} from "../hooks/useFetching";
 import api from "../http/api";
 import {routes} from "../routes/api-routes";
-import {vulnLabelColor} from "../utils";
 import {generatePath, Link, useParams} from "react-router-dom";
 import {AddCircleOIcon, EditIcon, SearchIcon} from "@patternfly/react-icons";
 import {ITaskInfo} from "../models/TaskInfoResponse";
@@ -52,6 +51,8 @@ import Moment from "moment/moment";
 import {ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {IVulnerabilities} from "../models/IVulnerabilities";
 import {siteRoutes} from "../routes/routes";
+import {constants} from "../misc";
+import VulnLabel from "../components/VulnLabel";
 
 function TaskInfo() {
     const [info, setInfo] = React.useState<ITaskInfo>();
@@ -77,8 +78,7 @@ function TaskInfo() {
             <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                 {data.map((vuln, vulnIndex) => {
                         return (
-                            <Label key={`${vuln.id}-${vulnIndex}`}
-                                   color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
+                            <VulnLabel key={`vuln-label-${vuln.id}-${vulnIndex}`} vuln_id={vuln.id} />
                         )
                     }
                 )}
@@ -111,8 +111,10 @@ function TaskInfo() {
                                     <Td dataLabel="Package name">
                                         <Link
                                             target={"_blank"}
-                                            to={`https://packages.altlinux.org/en/${info.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
-                                        >{subtask.src_pkg_name}</Link>
+                                            to={`${constants.PACKAGES_URL}/${info.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
+                                        >
+                                            {subtask.src_pkg_name}
+                                        </Link>
                                     </Td>
                                     <Td
                                         dataLabel="Package version">{subtask.src_pkg_version}-{subtask.src_pkg_release}</Td>
@@ -219,7 +221,7 @@ function TaskInfo() {
                         <TextContent>
                             <Text component="h1">Task #{info?.task_id} for {info?.task_repo} by <Link
                                 target={"_blank"}
-                                to={`https://packages.altlinux.org/en/${info?.task_repo}/maintainers/${info?.task_owner}/`}>{info?.task_owner}</Link></Text>
+                                to={`${constants.PACKAGES_URL}/${info?.task_repo}/maintainers/${info?.task_owner}/`}>{info?.task_owner}</Link></Text>
                         </TextContent>
                         <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
                             <DescriptionListGroup>
