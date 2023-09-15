@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -51,6 +51,7 @@ import searchStore from "../stores/searchStore";
 import {constants} from "../misc";
 import {useQuery} from "../hooks/useQuery";
 import {siteRoutes} from "../routes/routes";
+import VulnLabel from "../components/VulnLabel";
 
 interface NestedItemsProps {
     data: TaskListElement;
@@ -122,17 +123,9 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
             return (
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
-                        if (searchStore.value && smartSplit(searchStore.value).some(word => vuln.id.toLowerCase().includes(word.toLowerCase()))) {
                             return (
-                                <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
-                                       color={"orange"}>{vuln.id}</Label>
+                                <VulnLabel vuln_id={vuln.id} />
                             )
-                        } else {
-                            return (
-                                <Label key={`${data.task_id}-${vuln.id}-${vulnIndex}`}
-                                       color={vulnLabelColor(vuln.type)}>{vuln.id}</Label>
-                            )
-                        }
                         }
                     )}
                 </LabelGroup>
@@ -149,9 +142,11 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                                         render={({className, content, componentRef}) => (
                                             <Link
                                                 target="_blank"
-                                                to={`https://packages.altlinux.org/en/${data.branch}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
+                                                to={`${constants.PACKAGES_URL}/${data.branch}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
                                                 className={className}
-                                            >{content}</Link>
+                                            >
+                                                {content}
+                                            </Link>
                                         )}
                                     >{subtask.src_pkg_name}</Label>
                                 )
@@ -163,7 +158,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                                     render={({className, content, componentRef}) => (
                                         <Link
                                             target="_blank"
-                                            to={`https://packages.altlinux.org/en/${data.branch}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
+                                            to={`${constants.PACKAGES_URL}/${data.branch}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
                                             className={className}
                                         >{content}</Link>
                                     )}
@@ -212,7 +207,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                             <Td component="th" dataLabel={columnNames.branch}>
                                 <Link
                                     target={"_blank"}
-                                    to={`https://packages.altlinux.org/en/${task.branch}/maintainers/${task.owner}/`}
+                                    to={`${constants.PACKAGES_URL}/${task.branch}/maintainers/${task.owner}/`}
                                 >
                                     {task.owner}
                                 </Link>
