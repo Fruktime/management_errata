@@ -24,4 +24,5 @@ pre {
     --pf-v5-c-tooltip__content--BackgroundColor: #fff !important;
     --pf-v5-c-tooltip__arrow--BackgroundColor: #fff !important;
     --pf-v5-c-tooltip__content--Color: #151515 !important;
+    --pf-v5-c-tooltip--MaxWidth: 25rem !important;
 }
