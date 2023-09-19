@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -25,7 +25,7 @@ import {
     MastheadContent,
     MastheadMain,
     MastheadToggle, MenuToggle,
-    PageToggleButton,
+    PageToggleButton, Switch,
     Text,
     Toolbar,
     ToolbarContent, ToolbarGroup,
@@ -36,11 +36,36 @@ import {AuthContext} from "../context/AuthProvide";
 import {observer} from "mobx-react";
 import {MenuToggleElement} from "@patternfly/react-core/components";
 import {EllipsisVIcon} from "@patternfly/react-icons";
+import {constants} from "../misc";
 
 const Header: React.FunctionComponent = () => {
     const {auth} = React.useContext(AuthContext);
+    const [isDarkTheme, setIsDarkTheme] = React.useState<boolean>(false);
     const [isDropdownOpen, setIsDropdownOpen] = React.useState<boolean>(false);
     const [isFullKebabDropdownOpen, setIsFullKebabDropdownOpen] = React.useState<boolean>(false);
+
+    const handleDarkTheme = (_event: React.FormEvent<HTMLInputElement>, checked: boolean) => {
+        setIsDarkTheme(checked);
+        localStorage.setItem(constants.DARK_THEME_KEY, `${checked}`)
+    };
+
+    const setTheme = () => {
+        const html = document.getElementById("management-errata-html")
+        const darkTheme = localStorage.getItem(constants.DARK_THEME_KEY)
+        if (html && darkTheme) {
+            if (darkTheme === "true") {
+                setIsDarkTheme(true)
+                html.classList.add("pf-v5-theme-dark")
+            } else {
+                setIsDarkTheme(false)
+                html.classList.remove("pf-v5-theme-dark")
+            }
+        }
+    }
+
+    React.useEffect(() => {
+        setTheme()
+    }, [isDarkTheme])
 
     const onDropdownToggle = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -77,6 +102,16 @@ const Header: React.FunctionComponent = () => {
                     align={{ default: 'alignRight' }}
                     spacer={{ default: 'spacerNone', md: 'spacerMd' }}
                 >
+                    <ToolbarItem>
+                        <Switch
+                            id="switch-dark-theme"
+                            label="Dark theme"
+                            labelOff="Dark theme"
+                            isChecked={isDarkTheme}
+                            onChange={handleDarkTheme}
+                            ouiaId="BasicSwitch"
+                        />
+                    </ToolbarItem>
                     <ToolbarGroup variant="icon-button-group" align={{
                         default: 'alignRight'
                     }} spacer={{

@@ -31,6 +31,7 @@ export const constants = {
     NVD_CVE_URL: "https://nvd.nist.gov/vuln/detail",
     FSTEC_BDU_URL: "https://bdu.fstec.ru/vul",
     MFSA_URL: "https://www.mozilla.org/en-US/security/advisories",
+    DARK_THEME_KEY: "_dark_theme",
 }
 
 /**

@@ -26,3 +26,13 @@ pre {
     --pf-v5-c-tooltip__content--Color: #151515 !important;
     --pf-v5-c-tooltip--MaxWidth: 25rem !important;
 }
+
+.pf-v5-c-switch__input:focus ~ .pf-v5-c-switch__toggle {
+    outline: none !important;
+    outline-offset: unset !important;
+}
+
+.pf-v5-c-switch__input:focus~.pf-v5-c-switch__toggle {
+    outline: none !important;
+    outline-offset: unset !important;
+}
