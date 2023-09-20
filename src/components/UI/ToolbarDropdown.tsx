@@ -67,12 +67,9 @@ export default function ToolbarDropdown({items}: {items: DropdownItem[]}): React
                 item.setFilter(query.get(item.field) as string)
             }
             if (item.menuItems.length > 0 && query.has(item.field)) {
-                console.log("1")
                 if (item.menuItems.includes(query.get(item.field) as string)) {
-                    console.log("2")
                     item.setFilter(query.get(item.field) as string);
                 } else {
-                    console.log("3")
                     query.delete(item.field)
                     item.setFilter("")
                     navigate(`?${query}`)
