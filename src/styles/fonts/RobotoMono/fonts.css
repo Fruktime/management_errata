@@ -1,0 +1,35 @@
+@font-face {
+    font-family: 'Roboto Mono', sans-serif;
+    font-style: normal;
+    font-weight: 100;
+    font-display: swap;
+    src: url('../RobotoMono/RobotoMono-Thin.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto Mono', sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('../RobotoMono/RobotoMono-Light.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto Mono', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../RobotoMono/RobotoMono-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto Mono', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../RobotoMono/RobotoMono-Medium.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto Mono', sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../RobotoMono/RobotoMono-Bold.ttf') format('truetype');
+}

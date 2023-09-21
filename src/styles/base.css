@@ -4,6 +4,14 @@
     }
 }
 
+.pf-c-page, body {
+    font-family: "Roboto Condensed", sans-serif !important;
+}
+
+:root {
+    --pf-v5-global--FontFamily--monospace: "Roboto Mono", monospace !important;
+}
+
 pre {
     font-size: 1rem;
     overflow: hidden !important;

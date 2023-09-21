@@ -20,6 +20,8 @@ import "@patternfly/patternfly/patternfly.min.css"
 import "@patternfly/patternfly/patternfly-addons.css"
 import "@patternfly/react-core/dist/styles/base.css";
 
+import "./styles/fonts/RobotoCondensed/fonts.css"
+import "./styles/fonts/RobotoMono/fonts.css"
 import "./styles/base.css"
 
 
