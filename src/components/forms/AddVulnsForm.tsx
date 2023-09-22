@@ -61,8 +61,6 @@ interface AddVulnsFormProps {
     title?: string;
     /** Accessible descriptor of the modal. */
     ariaLabel?: string;
-    /** Vulnerability adding option (list | from list) */
-    variant: "fromList" | "asList"
 }
 
 interface RenderFoundVulnsProps {
@@ -280,8 +278,7 @@ export default function AddVulnsForm(
         isOpen,
         handleToggle,
         title,
-        ariaLabel,
-        variant
+        ariaLabel
     }: AddVulnsFormProps): React.ReactElement {
     // list of found vulnerabilities
     const [foundVulns, setFoundVulns] = React.useState<IVulns[] | IBug[]>([]);
@@ -343,18 +340,14 @@ export default function AddVulnsForm(
                 <div className={css(styles.wizardOuterWrap, "pf-v5-u-pl-0")}>
                     <div className={css(styles.wizardInnerWrap)}>
                         <WizardBody>
-                            {variant === "asList" ?
-                                <React.Fragment>
-                                    <AddAsList setVulns={setVulnIds} onClick={checkVulnsClick}/>
-                                    <RenderFoundVulns
-                                        vulns={foundVulns}
-                                        notFoundVulns={notFoundVulns}
-                                        isLoading={vulns.isLoading}
-                                        error={vulns.error}/>
-                                </React.Fragment>
-                                :
-                                undefined
-                            }
+                            <React.Fragment>
+                                <AddAsList setVulns={setVulnIds} onClick={checkVulnsClick}/>
+                                <RenderFoundVulns
+                                    vulns={foundVulns}
+                                    notFoundVulns={notFoundVulns}
+                                    isLoading={vulns.isLoading}
+                                    error={vulns.error}/>
+                            </React.Fragment>
                         </WizardBody>
                     </div>
                     <WizardFooterWrapper>
