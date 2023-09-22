@@ -32,6 +32,9 @@ export const constants = {
     FSTEC_BDU_URL: "https://bdu.fstec.ru/vul",
     MFSA_URL: "https://www.mozilla.org/en-US/security/advisories",
     DARK_THEME_KEY: "_dark_theme",
+    ERRATA_CHANGE_ACTION_CREATE: "create",
+    ERRATA_CHANGE_ACTION_DISCARD: "discard",
+    ERRATA_CHANGE_ACTION_UPDATE: "update",
 }
 
 /**
