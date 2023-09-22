@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -30,6 +30,7 @@ interface IApiRoutes {
     vulns: string;
     cveInfo: string;
     bduInfo: string;
+    managementErrata: string;
 }
 
 export const routes: IApiRoutes = {
@@ -46,4 +47,5 @@ export const routes: IApiRoutes = {
     vulns: "/management/vulns",
     cveInfo: "/vuln/cve",
     bduInfo: "/vuln/bdu",
+    managementErrata: "/management/errata"
 }
