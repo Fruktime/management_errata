@@ -72,11 +72,15 @@ class TaskListStore {
                     indexes: null
                 },
             });
-            if (response.data.tasks as TaskListElement[]) {
+            if (response.status === 200 && response.data.tasks as TaskListElement[]) {
                 this.setTaskList(response.data.tasks)
                 this.setTotalCount(Number(response.headers['x-total-count']))
+                this.setError("")
+            } else {
+                this.setTaskList([])
+                this.setTotalCount(0)
+                this.setError(response.data.message)
             }
-            this.setError("")
         } catch (e) {
             this.setError(e.message);
         } finally {
