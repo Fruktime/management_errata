@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -22,9 +22,12 @@ import {routes} from "../routes/api-routes";
 const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
     withCredentials: true,
+    validateStatus: function (status) {
+        return status < 500; // Allow if status code is less than 500.
+    }
 });
 
-// Add a request interceptor
+/** Add a request interceptor */
 api.interceptors.request.use(
     (config) => {
         // Get access token from local storage and pass it to the Authorization header
@@ -40,7 +43,7 @@ api.interceptors.request.use(
     }
 );
 
-// Add a response interceptor
+/** Add a response interceptor */
 api.interceptors.response.use(
     (config) => {
         return config;
