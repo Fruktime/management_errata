@@ -16,14 +16,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {IErrataReferences} from "./IErrataReferences";
+
+
 export interface IErrataHistory {
-    eh_type: string,
-    eh_source: string,
-    eh_created: string,
-    eh_updated: string,
-    "eh_references.type": string[],
-    "eh_references.link": string[],
-    errata_id: string,
+    id: string;
+    created: string;
+    updated: string;
+    type: string;
+    source: string;
+    references: IErrataReferences[];
     pkg_hash: string,
     pkg_name: string,
     pkg_version: string,
