@@ -79,11 +79,15 @@ class ErrataListStore {
                     indexes: null
                 },
             });
-            if (response.data.erratas as ErrataListElement[]) {
+            if (response.status === 200 && response.data.erratas as ErrataListElement[]) {
                 this.setErrataList(response.data.erratas)
                 this.setTotalCount(Number(response.headers["x-total-count"]))
+                this.setError("")
+            } else {
+                this.setErrataList([])
+                this.setTotalCount(0)
+                this.setError(response.data.message)
             }
-            this.setError("")
         } catch (e) {
             this.setError(e.message);
         } finally {
