@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    image: management-errata-dev-i
+    container_name: management-errata-dev-c
+    build:
+      dockerfile: Dockerfile.dev
+    volumes:
+      - node_modules:/management_errata/node_modules
+      - nginx_log:/var/log/nginx
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    env_file:
+      - ./.env
+    stdin_open: true
+    environment:
+      - NODE_ENV=development
+volumes:
+  node_modules:
+  nginx_log:

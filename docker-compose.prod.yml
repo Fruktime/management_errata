@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    image: management-errata-prod-i
+    container_name: management-errata-prod-c
+    build:
+      dockerfile: Dockerfile.prod
+    restart: always
+    volumes:
+      - nginx_log:/var/log/nginx
+    ports:
+      - ${APP_PORT_EXT}:80
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=production
+volumes:
+  nginx_log:

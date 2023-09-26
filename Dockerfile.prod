@@ -1,0 +1,59 @@
+FROM alt:p10 AS build
+
+# set version label
+ARG UID=1000
+ARG GID=1000
+
+ENV UNAME=errata
+ENV APP_HOME=/home/$UNAME/app
+
+RUN \
+    # fix Apt source lists
+    rm -f /etc/apt/sources.list.d/*.list \
+    && echo "rpm [p10] http://ftp.altlinux.org/pub/distributions/ALTLinux p10/branch/x86_64 classic" > /etc/apt/sources.list.d/alt.list \
+    && echo "rpm [p10] http://ftp.altlinux.org/pub/distributions/ALTLinux p10/branch/noarch classic" >> /etc/apt/sources.list.d/alt.list \
+    # installing packages
+    && apt-get update \
+    && yes | apt-get dist-upgrade \
+    && yes | apt-get install \
+        npm \
+    # clean-up Apt caches
+    && rm -f /var/cache/apt/archives/*.rpm \
+        /var/cache/apt/*.bin \
+        /var/lib/apt/lists/*.* \
+    # create user and directories
+    && groupadd -g $GID -o $UNAME \
+    && useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME \
+    && mkdir -p /config && mkdir -p /log \
+    && chown -R $UID:$GID /config \
+    && chown -R $UID:$GID /log \
+    && mkdir $APP_HOME
+
+WORKDIR $APP_HOME
+
+COPY package.json .
+
+RUN npm i
+
+COPY . $APP_HOME
+
+RUN chown -R $UID:$GID $APP_HOME
+
+USER $UNAME
+
+RUN touch $APP_HOME/.env
+
+RUN npm run build
+
+FROM altlinux/nginx:p10
+
+RUN yes | apt-get update \
+    && yes | apt-get dist-upgrade \
+    && yes | apt-get install gettext
+
+RUN rm -f /etc/nginx/sites-enabled.d/default.conf
+COPY ./nginx/entrypoint.sh ./nginx/entrypoint.sh
+RUN chmod +x ./nginx/entrypoint.sh
+COPY ./nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /home/errata/app/dist /usr/share/nginx/html
+ENTRYPOINT ["./nginx/entrypoint.sh"]

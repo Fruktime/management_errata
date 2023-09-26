@@ -1,0 +1,44 @@
+FROM alt:p10
+
+# set version label
+ARG UID=1000
+ARG GID=1000
+
+ENV UNAME=errata
+ENV APP_HOME=/home/$UNAME/app
+
+RUN \
+    # fix Apt source lists
+    rm -f /etc/apt/sources.list.d/*.list \
+    && echo "rpm [p10] http://ftp.altlinux.org/pub/distributions/ALTLinux p10/branch/x86_64 classic" > /etc/apt/sources.list.d/alt.list \
+    && echo "rpm [p10] http://ftp.altlinux.org/pub/distributions/ALTLinux p10/branch/noarch classic" >> /etc/apt/sources.list.d/alt.list \
+    # installing packages
+    && apt-get update \
+    && yes | apt-get dist-upgrade \
+    && yes | apt-get install \
+        npm \
+    # clean-up Apt caches
+    && rm -f /var/cache/apt/archives/*.rpm \
+        /var/cache/apt/*.bin \
+        /var/lib/apt/lists/*.* \
+    # create user and directories
+    && groupadd -g $GID -o $UNAME \
+    && useradd -m -u $UID -g $GID -o -s /bin/bash $UNAME \
+    && mkdir $APP_HOME
+
+WORKDIR $APP_HOME
+
+COPY package.json .
+COPY .env .
+
+RUN npm i
+
+COPY . $APP_HOME
+
+RUN chown -R $UID:$GID $APP_HOME
+
+USER $UNAME
+
+RUN touch $APP_HOME/.env
+
+CMD ["npm", "start"]
