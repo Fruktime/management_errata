@@ -34,18 +34,18 @@ interface IApiRoutes {
 }
 
 export const routes: IApiRoutes = {
-    logIn: "/auth/login",
-    logOut: "/auth/logout",
-    refreshToken: "/auth/refresh-token",
-    errataBranches: "/errata/errata_branches",
-    errataList: "/errata/find_erratas",
-    taskList: "/management/task_list",
-    taskInfo: "/management/task_info",
-    allTasksBranches: "/task/progress/all_tasks_branches",
-    errataPackagesUpdates: "/errata/packages_updates",
-    errataBranchesUpdates: "/errata/branches_updates",
-    vulns: "/management/vulns",
-    cveInfo: "/vuln/cve",
-    bduInfo: "/vuln/bdu",
-    managementErrata: "/management/errata"
+    logIn: "/api/auth/login",
+    logOut: "/api/auth/logout",
+    refreshToken: "/api/auth/refresh-token",
+    errataBranches: "/api/errata/errata_branches",
+    errataList: "/api/errata/find_erratas",
+    taskList: "/manage/task_list",
+    taskInfo: "/manage/task_info",
+    allTasksBranches: "/api/task/progress/all_tasks_branches",
+    errataPackagesUpdates: "/api/errata/packages_updates",
+    errataBranchesUpdates: "/api/errata/branches_updates",
+    vulns: "/manage/vulns",
+    cveInfo: "/api/vuln/cve",
+    bduInfo: "/api/vuln/bdu",
+    managementErrata: "/manage/errata"
 }
