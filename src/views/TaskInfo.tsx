@@ -111,7 +111,7 @@ function TaskInfo() {
                                     <Td dataLabel="Package name">
                                         <Link
                                             target={"_blank"}
-                                            to={`${constants.PACKAGES_URL}/${info.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
+                                            to={`${constants.PACKAGES_URL}/${info?.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
                                         >
                                             {subtask.src_pkg_name}
                                         </Link>

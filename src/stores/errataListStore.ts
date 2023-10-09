@@ -67,16 +67,13 @@ class ErrataListStore {
     async getErrataList(input: string, page: number, limit: number) {
         try {
             this.setIsLoading(true);
-            const response = await api.get(routes.errataList, {
+            const response = await api.get(`${routes.errataList}`, {
                 params: {
                     limit: limit,
                     page: page,
                     branch: this.filterBranch !== "" ? this.filterBranch : null,
                     type: this.filterType !== "" ? this.filterType : null,
                     input: input !== "" ? smartSplit(input).join(",") : null
-                },
-                paramsSerializer: {
-                    indexes: null
                 },
             });
             if (response.status === 200 && response.data.erratas as ErrataListElement[]) {

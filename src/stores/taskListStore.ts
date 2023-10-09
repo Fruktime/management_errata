@@ -68,9 +68,6 @@ class TaskListStore {
                     branch: this.filterBranch !== '' ? this.filterBranch : null,
                     input: input !== '' ? smartSplit(input).join(',') : null
                 },
-                paramsSerializer: {
-                    indexes: null
-                },
             });
             if (response.status === 200 && response.data.tasks as TaskListElement[]) {
                 this.setTaskList(response.data.tasks)
