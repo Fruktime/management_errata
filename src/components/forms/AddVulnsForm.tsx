@@ -41,31 +41,33 @@ import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {useFetching} from "../../hooks/useFetching";
 import api from "../../http/api";
 import {routes} from "../../routes/api-routes";
-import {IBug, IVulns} from "../../models/ErrataPackageUpdatesResponse";
 import {CheckCircleIcon, ExclamationCircleIcon, SearchIcon} from "@patternfly/react-icons";
 import {Link} from "react-router-dom";
 import Moment from "moment/moment";
-import {css} from "@patternfly/react-styles";
 import styles from "@patternfly/react-styles/css/components/Wizard/wizard";
 import Loader from "../Loader";
 import {VulnsResponse} from "../../models/VulnsResponse";
 import {List, ListItem} from "@patternfly/react-core/components";
+import {IVulns} from "../../models/IErrata";
+import {toJS} from "mobx";
+import {observer} from "mobx-react";
 
 interface AddVulnsFormProps {
-    setListAddedVulns: React.Dispatch<React.SetStateAction<IVulns[] | IBug[]>>
+    listAddedVulns: IVulns[];
+    setListAddedVulns: (vulns: IVulns[]) => void;
     /** Is the modal window open to add vulnerabilities */
     isOpen: boolean;
     /** Handle modal window toggle */
     handleToggle: () => void;
     /** Simple text content of the modal header. Also used for the aria-label on the body. */
-    title?: string;
+    title: string;
     /** Accessible descriptor of the modal. */
-    ariaLabel?: string;
+    ariaLabel: string;
 }
 
 interface RenderFoundVulnsProps {
     /** List of found vulnerabilities in the database */
-    vulns: IVulns[] | IBug[];
+    vulns: IVulns[];
     /** BDUs and Bugzilla vulnerabilities not found in the DB */
     notFoundVulns: string[]
     isLoading: boolean;
@@ -127,14 +129,15 @@ const RenderFoundVulns: React.FunctionComponent<RenderFoundVulnsProps> = (
                             </Td>
                             <Td dataLabel={columnNames.summary}>{vuln.summary}</Td>
                             <Td dataLabel={columnNames.url}>
-                                {"url" in vuln ?
-                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
+                                {vuln.type === "BUG" ?
                                     <Link
                                         target="_blank"
                                         to={`https://bugzilla.altlinux.org/${vuln.id}`}
                                     >
                                         {`https://bugzilla.altlinux.org/${vuln.id}`}
                                     </Link>
+                                    :
+                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link>
                                 }
                             </Td>
                             <Td
@@ -211,7 +214,7 @@ const RenderFoundVulns: React.FunctionComponent<RenderFoundVulnsProps> = (
 
 const AddAsList: React.FunctionComponent<AddAsListProps> = ({setVulns, onClick}): React.ReactElement => {
     const [value, setValue] = React.useState("");
-    const [validated, setValidated] = React.useState<"default" | "error" | "warning" | "success" | undefined>("default");
+    const [validated, setValidated] = React.useState<"success" | "warning" | "error" | "default">("default");
 
     const defaultHelperText = "Enter a list of vulnerabilities separated by spaces, commas, or line breaks."
     const [helperText, setHelperText] = React.useState(defaultHelperText);
@@ -272,8 +275,9 @@ const AddAsList: React.FunctionComponent<AddAsListProps> = ({setVulns, onClick})
 }
 
 
-export default function AddVulnsForm(
+function AddVulnsForm(
     {
+        listAddedVulns,
         setListAddedVulns,
         isOpen,
         handleToggle,
@@ -281,7 +285,7 @@ export default function AddVulnsForm(
         ariaLabel
     }: AddVulnsFormProps): React.ReactElement {
     // list of found vulnerabilities
-    const [foundVulns, setFoundVulns] = React.useState<IVulns[] | IBug[]>([]);
+    const [foundVulns, setFoundVulns] = React.useState<IVulns[]>([]);
     // list of not found vulnerabilities
     const [notFoundVulns, setNotFoundVulns] = React.useState<string[]>([])
     // list of searched vulnerabilities
@@ -293,7 +297,7 @@ export default function AddVulnsForm(
             "vuln_ids": vulnIds
         }, {withCredentials: true});
         if (response.data as VulnsResponse) {
-            setFoundVulns([...response.data.bugs, ...response.data.vulns])
+            setFoundVulns([...response.data.vulns])
             setNotFoundVulns(response.data.not_found)
         }
     });
@@ -314,15 +318,14 @@ export default function AddVulnsForm(
     }, [vulns.error])
 
     const onAddVulns = () => {
-        setListAddedVulns(prevState => {
-            const newVulnList = []
-            for (let vuln of foundVulns) {
-                if (prevState.findIndex(r => r.id === vuln.id) === -1) {
-                    newVulnList.push(vuln)
-                }
+        const newVulnList: IVulns[] = []
+        for (let vuln of foundVulns) {
+            if (listAddedVulns.findIndex(r => r.id === vuln.id) === -1) {
+                newVulnList.push(vuln)
             }
-            return [...prevState, ...newVulnList]
-        })
+        }
+        const updateVulns: IVulns[] = [...toJS(listAddedVulns), ...newVulnList]
+        setListAddedVulns(updateVulns)
         onCloseModal()
     }
 
@@ -336,9 +339,9 @@ export default function AddVulnsForm(
             onClose={onCloseModal}
             hasNoBodyWrapper
         >
-            <div className={css(styles.wizard)}>
-                <div className={css(styles.wizardOuterWrap, "pf-v5-u-pl-0")}>
-                    <div className={css(styles.wizardInnerWrap)}>
+            <div className={styles.wizard}>
+                <div className={`${styles.wizardOuterWrap} pf-v5-u-pl-0`}>
+                    <div className={styles.wizardInnerWrap}>
                         <WizardBody>
                             <React.Fragment>
                                 <AddAsList setVulns={setVulnIds} onClick={checkVulnsClick}/>
@@ -373,4 +376,6 @@ export default function AddVulnsForm(
             </div>
         </Modal>
     );
-};
+}
+
+export default observer(AddVulnsForm);

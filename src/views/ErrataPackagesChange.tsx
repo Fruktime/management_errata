@@ -38,143 +38,209 @@ import {
     ToolbarFilter,
     WizardFooterWrapper,
     WizardBody,
-    Card, CardBody
+    Card,
+    CardBody,
+    Modal,
+    ModalVariant,
+    Alert,
+    AlertGroup,
+    AlertActionCloseButton,
+    TextArea,
+    FormHelperText
 } from "@patternfly/react-core";
-import {generatePath, Link, useParams} from "react-router-dom";
+import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
 import {CheckCircleIcon, ExclamationCircleIcon} from "@patternfly/react-icons";
-import {useFetching} from "../hooks/useFetching";
-import api from "../http/api";
-import {routes} from "../routes/api-routes";
-import {
-    IBug,
-    IErrataPackageUpdates,
-    IErrataPackageUpdatesResponse,
-    IVulns
-} from "../models/ErrataPackageUpdatesResponse";
 import Moment from "moment";
-import {css} from "@patternfly/react-styles";
 import styles from "@patternfly/react-styles/css/components/Wizard/wizard";
 import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import AddVulnsForm from "../components/forms/AddVulnsForm";
-import {IErrataHistory} from "../models/IErrataHistory";
-import {buildErrataReferences} from "../utils";
 import Loader from "../components/Loader";
 import NotFound from "./NotFound";
 import {siteRoutes} from "../routes/routes";
 import {constants} from "../misc";
+import {AuthContext} from "../context/AuthProvide";
+import errataStore from "../stores/errataStore";
+import {IVulns} from "../models/IErrata";
+import {observer} from "mobx-react";
 
 const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => {
-    /** Information about errata. */
-    const [errataInfo, setErrataInfo] = React.useState<IErrataPackageUpdates>()
+    const {auth} = React.useContext(AuthContext);
+    const errata = errataStore
+
+    /**
+     * Returns an imperative method for changing the location. Used by <Link>s,
+     * but may also be used by other elements to change the location.
+     */
+    const navigate = useNavigate();
+
+    const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
+
     /** Errata ID from URL params */
     const {errataId} = useParams<string>();
 
-    /** Vulnerabilities removed from errata. */
-    const [removedVulns, setRemovedVulns] = React.useState<string[]>([]);
-
     /** Value from search input. */
     const [searchInputValue, setSearchInputValue] = React.useState<string>("");
-    
-    const [vulnList, setVulnList] = React.useState<IVulns[] | IBug[]>([]);
-    const [searchVulns, setSearchVulns] = React.useState(vulnList)
+
+    const [searchVulns, setSearchVulns] = React.useState<IVulns[]>(errata.errataVulns)
 
     /** Modal window for adding a vulnerability to errata. */
     const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
 
-    const [variantAddVulns, setVariantAddVulns] = React.useState<"asList" | "fromList">("fromList")
+    /** Modal window for adding a vulnerability to errata. */
+    const [isDiscardModalOpen, setDiscardModalOpen] = React.useState<boolean>(false);
 
-    // table column names
+    /** Modal window for adding a vulnerability to errata. */
+    const [isSaveModalOpen, setSaveModalOpen] = React.useState<boolean>(false);
+
+    /** Errata change reason. */
+    // const [reasonErrata, setReasonErrata] = React.useState<string>("");
+
+    const [validationStatuses, setValidationStatuses] = React.useState<"default" | "error" | "warning" | "success">("default");
+
+    const [helperText, setHelperText] = React.useState<string>("");
+
+
+    /** Table column names. */
     const columnNames = {
         is_valid: "Valid",
         id: "Vulnerability ID",
         summary: "Summary",
         url: "URL",
-        published_date: "Published",
-        modified_date: "Modified"
+        created: "Published",
+        updated: "Modified"
     };
 
     /** Handle modal window toggle */
-    const handleModalToggle = (_event?: KeyboardEvent | React.MouseEvent, variant?: "asList" | "fromList") => {
-        if (variant) {
-            setVariantAddVulns(variant)
-        }
+    const handleModalToggle = (_event?: KeyboardEvent | React.MouseEvent) => {
         setIsModalOpen(!isModalOpen);
     };
 
-    const packageUpdates = useFetching(async () => {
-        const response = await api.post(`${routes.errataPackagesUpdates}`, {
-            "errata_ids": [errataId]
-        }, {withCredentials: true});
-        if (response.data?.packages_updates as IErrataPackageUpdatesResponse) {
-            setErrataInfo(response.data.packages_updates[0])
-            const bugs = response.data.packages_updates[0].bugs ? response.data.packages_updates[0].bugs : []
-            const vulns = response.data.packages_updates[0].vulns ? response.data.packages_updates[0].vulns : []
-            setVulnList([...bugs, ...vulns])
-            setSearchVulns([...bugs, ...vulns])
-        } else {
-            setErrataInfo(undefined)
-        }
-    })
+    const handleDiscardModalToggle = () => {
+        setDiscardModalOpen(!isDiscardModalOpen);
+        handleReasonErrataChange("");
+    }
+
+    const handleSaveModalToggle = () => {
+        setSaveModalOpen(!isSaveModalOpen);
+        handleReasonErrataChange("");
+    }
 
     React.useEffect(() => {
-        packageUpdates.fetching()
+        errata.getErrata(errataId).then();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [errataId])
 
-    React.useEffect( () => {
-        setSearchVulns(vulnList)
-    }, [vulnList])
+    React.useEffect(() => {
+        setSearchVulns(errata.errataVulns)
+    }, [errata.errataVulns])
+
+    React.useEffect(() => {
+        if (errata.message) {
+            if (errata.statusCode === 400 && errata.validationMessage) {
+                showAlerts(errata.message, errata.validationMessage, errata.typeMessage)
+            } else {
+                showAlerts(errata.message, "", errata.typeMessage)
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [errata.message])
 
     /** Check the checkbox to remove the vulnerability. */
-    const setSelected = (vuln: IVulns | IBug, isSelecting = true) =>
-        setRemovedVulns(prevSelected => {
-            const otherSelectedRepoNames = prevSelected.filter(r => r !== vuln.id);
-            return isSelecting && vuln.id ? [...otherSelectedRepoNames, vuln.id] : otherSelectedRepoNames;
-        });
+    const setSelected = (vuln: IVulns, isSelecting:boolean = true) => {
+        const otherSelectedRepoNames = errata.removedVulns.filter(r => r !== vuln.id);
+        errata.setRemovedVulns(isSelecting && vuln.id ? [...otherSelectedRepoNames, vuln.id] : otherSelectedRepoNames);
+    };
 
     /** Check if the checkbox to remove the vulnerability is checked. */
-    const isVulnSelected = (vuln: IVulns | IBug) => removedVulns.includes(vuln.id);
+    const isVulnSelected = (vuln: IVulns) => errata.removedVulns.includes(vuln.id)
 
     /** find vulnerability */
     const onSearchInputChange = (value: string) => {
         setSearchInputValue(value);
         if (value === "") {
-            setSearchVulns(vulnList)
+            setSearchVulns(errata.errataVulns)
         } else {
-            setSearchVulns(vulnList.filter(r => r.id.toString().toLowerCase().includes(value.toLowerCase())))
+            setSearchVulns(errata.errataVulns.filter(r => r.id.toString().toLowerCase().includes(value.toLowerCase())))
         }
 
     };
 
-    const saveErrata = () => {
-        const references = buildErrataReferences(
-            vulnList.filter((vuln) => !removedVulns.includes(vuln.id)).map((vuln) => vuln.id)
-        )
-        if (errataInfo) {
-            const errataHistory: IErrataHistory = {
-                eh_type: errataInfo.type,
-                eh_source: errataInfo.type === "bulletin" ? "branch" : "changelog",
-                eh_created: errataInfo.created,
-                eh_updated: errataInfo.updated,
-                "eh_references.type": references.map((ref) => ref.type),
-                "eh_references.link": references.map((ref) => ref.link),
-                errata_id: errataInfo.id,
-                pkg_hash: errataInfo.pkg_hash,
-                pkg_name: errataInfo.pkg_name,
-                pkg_version: errataInfo.pkg_version,
-                pkg_release: errataInfo.pkg_release,
-                pkgset_name: errataInfo.pkgset_name,
-                task_id: errataInfo.task_id,
-                subtask_id: errataInfo.subtask_id,
-                task_state: errataInfo.task_state,
-            }
-            console.log(errataHistory)
+    const showAlerts = (
+        header: string,
+        message: string,
+        variant: 'success' | 'danger' | 'warning' | 'info' | 'custom'
+    ) => {
+        setAlerts([
+                <Alert
+                    title={<div dangerouslySetInnerHTML={{__html: header}}/>}
+                    variant={variant}
+                    actionClose={
+                        <AlertActionCloseButton variantLabel={`${variant} alert`} onClose={() => setAlerts([])}/>
+                    }
+                >
+                    {message}
+                </Alert>
+            ]
+        );
+    }
+
+    const validateReason = (value: string) => {
+        if (value.length !== 0 && value.length < 10) {
+            setValidationStatuses("error");
+            setHelperText("The message cannot be less than 10 characters.");
+        } else if (value.length >= 10) {
+            setValidationStatuses("success");
+            setHelperText("");
+        } else {
+            setValidationStatuses("default");
+            setHelperText("");
         }
 
     }
 
+    const handleReasonErrataChange = (value: string) => {
+        validateReason(value);
+        errata.setReasonChangeErrata(value);
+    };
+
+    const saveErrata = () => {
+        errata.putErrata(auth.user).then(() => {
+            if (errata.updateErrata) {
+                navigate(generatePath(siteRoutes.errataInfo, {errataId: errata.updateErrata}))
+            }
+        });
+        handleSaveModalToggle();
+    }
+
+    const saveDiscardErrata = () => {
+        errata.discardErrata(auth.user).then();
+        handleDiscardModalToggle();
+    }
+
+    const renderReasonFormGroup = (): React.ReactElement => {
+        return (
+            <FormGroup label="Please indicate the reason for the change Errata:" type="string"
+                       fieldId="reasonErrata">
+                <TextArea
+                    value={errata.reasonChangeErrata}
+                    style={{minHeight: "10rem"}}
+                    onChange={(_event, value) => handleReasonErrataChange(value)}
+                    isRequired
+                    resizeOrientation="vertical"
+                    validated={validationStatuses}
+                    aria-label="reason for change errata"
+                />
+                <FormHelperText>
+                    <HelperText>
+                        <HelperTextItem variant={validationStatuses}>{helperText}</HelperTextItem>
+                    </HelperText>
+                </FormHelperText>
+            </FormGroup>
+        )
+    }
+
     /** Table body rendering component */
-    const RenderRows: React.FunctionComponent = (): React.ReactElement => {
+    const RenderRows: React.FunctionComponent = observer((): React.ReactElement => {
         return (
             <React.Fragment>
                 {searchVulns.map((vuln, vulnIndex) => {
@@ -187,30 +253,31 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                             <Td dataLabel={columnNames.id}>{vuln.id}</Td>
                             <Td dataLabel={columnNames.summary}>{vuln.summary}</Td>
                             <Td dataLabel={columnNames.url}>
-                                {"url" in vuln ?
-                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link> :
+                                {vuln.type === "BUG" ?
                                     <Link
                                         target="_blank"
                                         to={`${constants.BUGZILLA_URL}/${vuln.id}`}
                                     >
                                         {`${constants.BUGZILLA_URL}/${vuln.id}`}
                                     </Link>
+                                    :
+                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link>
                                 }
                             </Td>
                             <Td
-                                dataLabel={columnNames.published_date}
+                                dataLabel={columnNames.created}
                             >
                                 {
-                                    "published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ?
+                                    vuln.published_date.substring(0, 4) !== "1970" ?
                                         Moment(vuln.published_date).format("D MMMM YYYY") :
                                         "-"
                                 }
                             </Td>
                             <Td
-                                dataLabel={columnNames.modified_date}
+                                dataLabel={columnNames.updated}
                             >
                                 {
-                                    "modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ?
+                                    vuln.modified_date.substring(0, 4) !== "1970" ?
                                         Moment(vuln.modified_date).format("D MMMM YYYY") :
                                         "-"
                                 }
@@ -227,9 +294,9 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                 })}
             </React.Fragment>
         )
-    }
+    })
 
-    if (packageUpdates.isLoading) {
+    if (errata.isLoading) {
         return (
             <PageSection isCenterAligned>
                 <Card>
@@ -239,31 +306,34 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                 </Card>
             </PageSection>
         )
-    } else if (packageUpdates.error) {
+    } else if (errata.error || errata.errataInfo === null) {
         return (
-            <NotFound />
+            <NotFound/>
         )
     } else {
         return (
             <React.Fragment>
+                <AlertGroup isToast isLiveRegion>
+                    {alerts}
+                </AlertGroup>
                 <PageSection type={PageSectionTypes.wizard}>
-                    <div className={css(styles.wizard)}>
-                        <div className={css(styles.wizardOuterWrap, "pf-v5-u-pl-0")}>
-                            <div className={css(styles.wizardInnerWrap)}>
+                    <div className={styles.wizard}>
+                        <div className={`${styles.wizardOuterWrap} pf-v5-u-pl-0`}>
+                            <div className={styles.wizardInnerWrap}>
                                 <WizardBody>
                                     <TextContent>
                                         <Text component="h1">Change errata {errataId}</Text>
                                     </TextContent>
 
                                     <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
-                                        {errataInfo?.task_id && errataInfo?.task_id !== 0 ?
+                                        {errata.errataInfo?.task_id && errata.errataInfo?.task_id !== 0 ?
                                             <DescriptionListGroup>
                                                 <DescriptionListTerm>Task ID:</DescriptionListTerm>
                                                 <DescriptionListDescription>
                                                     <Link
-                                                        to={generatePath(siteRoutes.taskInfo, {taskId: errataInfo.task_id})}
+                                                        to={generatePath(siteRoutes.taskInfo, {taskId: errata.errataInfo.task_id.toString()})}
                                                     >
-                                                        #{errataInfo?.task_id}
+                                                        #{errata.errataInfo?.task_id}
                                                     </Link>
                                                 </DescriptionListDescription>
                                             </DescriptionListGroup>
@@ -275,28 +345,28 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                             <DescriptionListDescription>
                                                 <Link
                                                     target="_blank"
-                                                    to={`${constants.PACKAGES_URL}/${errataInfo?.pkgset_name}/srpms/${errataInfo?.pkg_name}/${errataInfo?.pkg_hash}`}
+                                                    to={`${constants.PACKAGES_URL}/${errata.errataInfo?.pkgset_name}/srpms/${errata.errataInfo?.pkg_name}/${errata.errataInfo.pkg_hash}`}
                                                 >
-                                                    {errataInfo?.pkg_name}
+                                                    {errata.errataInfo.pkg_name}
                                                 </Link>
                                             </DescriptionListDescription>
                                         </DescriptionListGroup>
                                         <DescriptionListGroup>
                                             <DescriptionListTerm>Package version:</DescriptionListTerm>
                                             <DescriptionListDescription>
-                                                {errataInfo?.pkg_version}-{errataInfo?.pkg_release}
+                                                {errata.errataInfo.pkg_version}-{errata.errataInfo.pkg_release}
                                             </DescriptionListDescription>
                                         </DescriptionListGroup>
                                         <DescriptionListGroup>
                                             <DescriptionListTerm>Errata created date: </DescriptionListTerm>
                                             <DescriptionListDescription>
-                                                {Moment(errataInfo?.created).format("D MMMM YYYY")}
+                                                {Moment(errata.errataInfo.created).format("D MMMM YYYY")}
                                             </DescriptionListDescription>
                                         </DescriptionListGroup>
                                         <DescriptionListGroup>
                                             <DescriptionListTerm>Errata updated date: </DescriptionListTerm>
                                             <DescriptionListDescription>
-                                                {Moment(errataInfo?.updated).format("D MMMM YYYY")}
+                                                {Moment(errata.errataInfo.updated).format("D MMMM YYYY")}
                                             </DescriptionListDescription>
                                         </DescriptionListGroup>
                                     </DescriptionList>
@@ -335,8 +405,8 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                                 <Th width={15}>{columnNames.id}</Th>
                                                 <Th>{columnNames.summary}</Th>
                                                 <Th>{columnNames.url}</Th>
-                                                <Th width={10}>{columnNames.published_date}</Th>
-                                                <Th width={10}>{columnNames.modified_date}</Th>
+                                                <Th width={10}>{columnNames.created}</Th>
+                                                <Th width={10}>{columnNames.updated}</Th>
                                                 <Th>
                                                     <HelperText>
                                                         <HelperTextItem variant="error">Delete?</HelperTextItem>
@@ -345,7 +415,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                             </Tr>
                                         </Thead>
                                         <Tbody key={"vulnerability-list"}>
-                                            <RenderRows/>
+                                            <RenderRows />
                                         </Tbody>
                                     </Table>
                                 </WizardBody>
@@ -358,15 +428,20 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                         <Flex>
                                             <Button
                                                 key={"save-errata"}
+                                                size="sm"
                                                 variant={"primary"}
                                                 className={"pf-v5-u-mr-sm"}
-                                                onClick={saveErrata}
+                                                onClick={handleSaveModalToggle}
+                                                isDisabled={true}
                                             >
                                                 Save
                                             </Button>
                                             <Button
                                                 key={"save-and-continue-errata"}
+                                                size="sm"
                                                 variant={"primary"}
+                                                onClick={handleSaveModalToggle}
+                                                isDisabled={!errata.errataInfo}
                                             >
                                                 Save and continue
                                             </Button>
@@ -376,15 +451,43 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                         <Flex>
                                             <Button
                                                 key={"add-vulns-as-list"}
+                                                size="sm"
                                                 variant={"primary"}
-                                                onClick={(event) => handleModalToggle(event, "asList")}
+                                                onClick={handleModalToggle}
                                                 className={"pf-v5-u-mr-sm"}
+                                                isDisabled={!errata.errataInfo}
                                             >
                                                 Add vulnerabilities as a list
                                             </Button>
-                                            <Button key={"discard-errata"} variant={"danger"}>
-                                                Discard Errata
+                                            <Button
+                                                key={"errata-history-button"}
+                                                size="sm"
+                                                variant={"tertiary"}
+                                                // onClick={handleModalToggle}
+                                                className={"pf-v5-u-mr-sm"}
+                                                isDisabled={true}
+                                            >
+                                                History
                                             </Button>
+                                            {errata.errataInfo.is_discarded?
+                                                <Button
+                                                    key={"enable-errata"}
+                                                    size="sm"
+                                                    variant={"warning"}
+                                                >
+                                                    Enable Errata
+                                                </Button>
+                                                :
+                                                <Button
+                                                    key={"discard-errata"}
+                                                    size="sm"
+                                                    variant={"danger"}
+                                                    onClick={() => handleDiscardModalToggle()}
+                                                >
+                                                    Discard Errata
+                                                </Button>
+                                            }
+
                                         </Flex>
                                     </FlexItem>
                                 </Flex>
@@ -393,17 +496,57 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                     </div>
 
                     <AddVulnsForm
-                        setListAddedVulns={setVulnList}
+                        listAddedVulns={errata.errataVulns}
+                        setListAddedVulns={errata.setErrataVulns}
                         isOpen={isModalOpen}
                         handleToggle={handleModalToggle}
                         title={"Add vulnerability"}
                         ariaLabel={"Add vulnerability"}
-                        variant={variantAddVulns}
                     />
                 </PageSection>
+
+                <Modal
+                    variant={ModalVariant.small}
+                    title="Are you sure you want to discard errata?"
+                    isOpen={isDiscardModalOpen}
+                    onClose={handleDiscardModalToggle}
+                    actions={[
+                        <Button
+                            key="confirm"
+                            variant="primary"
+                            isDisabled={validationStatuses !== "success" || !errata.errataInfo}
+                            onClick={saveDiscardErrata}
+                        >
+                            Yes
+                        </Button>,
+                        <Button key="cancel" variant="link" onClick={handleDiscardModalToggle}>
+                            No
+                        </Button>
+                    ]}
+                >
+                    {renderReasonFormGroup()}
+                </Modal>
+
+                <Modal
+                    variant={ModalVariant.small}
+                    title="Save changes Errata"
+                    isOpen={isSaveModalOpen}
+                    onClose={handleSaveModalToggle}
+                    actions={[
+                        <Button key="confirm" variant="primary" isDisabled={validationStatuses !== "success" || !errata.errataInfo}
+                                onClick={saveErrata}>
+                            Yes
+                        </Button>,
+                        <Button key="cancel" variant="link" onClick={handleSaveModalToggle}>
+                            No
+                        </Button>
+                    ]}
+                >
+                    {renderReasonFormGroup()}
+                </Modal>
             </React.Fragment>
         );
     }
 };
 
-export default ErrataPackagesChange;
+export default observer(ErrataPackagesChange);
