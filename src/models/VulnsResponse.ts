@@ -15,12 +15,10 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import {IVulns} from "./IErrata";
 
-import {IBug, IVulns} from "./ErrataPackageUpdatesResponse";
 
 export interface VulnsResponse {
-    /** List of bugs */
-    bugs: IBug[]
     /** List of vulnerability */
     vulns: IVulns[]
     /** BDUs and Bugzilla vulnerabilities not found in the DB */
