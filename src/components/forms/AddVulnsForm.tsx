@@ -21,31 +21,19 @@ import {
     Modal,
     ModalVariant,
     Button,
-    Bullseye,
-    EmptyState,
-    EmptyStateVariant,
-    EmptyStateIcon, Title,
     WizardBody,
     WizardFooterWrapper,
-    PageSection,
-    PageSectionVariants,
-    Alert
 } from "@patternfly/react-core";
-import {Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
 import {useFetching} from "../../hooks/useFetching";
 import api from "../../http/api";
 import {routes} from "../../routes/api-routes";
-import {CheckCircleIcon, ExclamationCircleIcon, SearchIcon} from "@patternfly/react-icons";
-import {Link} from "react-router-dom";
-import Moment from "moment/moment";
 import styles from "@patternfly/react-styles/css/components/Wizard/wizard";
-import Loader from "../Loader";
 import {VulnsResponse} from "../../models/VulnsResponse";
-import {List, ListItem} from "@patternfly/react-core/components";
 import {IVulns} from "../../models/IErrata";
 import {toJS} from "mobx";
 import {observer} from "mobx-react";
 import AddVulnsAsList from "./AddVulnsAsList";
+import RenderFoundVulns from "../RenderFoundVulns";
 
 interface AddVulnsFormProps {
     listAddedVulns: IVulns[];
@@ -58,147 +46,6 @@ interface AddVulnsFormProps {
     title: string;
     /** Accessible descriptor of the modal. */
     ariaLabel: string;
-}
-
-interface RenderFoundVulnsProps {
-    /** List of found vulnerabilities in the database */
-    vulns: IVulns[];
-    /** BDUs and Bugzilla vulnerabilities not found in the DB */
-    notFoundVulns: string[]
-    isLoading: boolean;
-    /** Error message to API */
-    error: string;
-}
-
-
-const RenderFoundVulns: React.FunctionComponent<RenderFoundVulnsProps> = (
-    {vulns, notFoundVulns, isLoading, error}
-): React.ReactElement | null => {
-
-    const columnNames = {
-        is_valid: "Valid",
-        id: "Vulnerability ID",
-        related_vulns: "Related vulns",
-        summary: "Summary",
-        url: "URL",
-        published_date: "Published",
-        modified_date: "Modified"
-    };
-
-    // table body rendering component
-    const RenderRows: React.FunctionComponent = (): React.ReactElement => {
-        return (
-            <React.Fragment>
-                {notFoundVulns.map((vulnId) => {
-                    return (
-                        <Tr key={vulnId}>
-                            <Td dataLabel={columnNames.id} colSpan={Object.keys(columnNames).length}>
-                                <Alert variant="danger" isInline title={`Vulnerability ${vulnId} not found in DB`}/>
-                            </Td>
-                        </Tr>
-                    )
-                })}
-                {vulns.map((vuln) => {
-                    return (
-                        <Tr key={`added-vuln-${vuln.id}`}>
-                            <Td dataLabel={columnNames.is_valid}>
-                                {!vuln.is_valid ? <ExclamationCircleIcon color={"red"}/> :
-                                    <CheckCircleIcon color={"green"}/>}
-                            </Td>
-                            <Td dataLabel={columnNames.id}><Link to={"#"}>{vuln.id}</Link></Td>
-                            <Td dataLabel={columnNames.related_vulns}>
-                                {"related_vulns" in vuln && vuln.related_vulns ?
-                                    <List isPlain>
-                                        {vuln.related_vulns.map((relVuln) => {
-                                            return (
-                                                <ListItem key={relVuln}><Link to={"#"}>{relVuln}</Link></ListItem>
-                                            )
-                                        })}
-                                    </List>
-                                    : "-"}
-                            </Td>
-                            <Td dataLabel={columnNames.summary}>{vuln.summary}</Td>
-                            <Td dataLabel={columnNames.url}>
-                                {vuln.type === "BUG" ?
-                                    <Link
-                                        target="_blank"
-                                        to={`https://bugzilla.altlinux.org/${vuln.id}`}
-                                    >
-                                        {`https://bugzilla.altlinux.org/${vuln.id}`}
-                                    </Link>
-                                    :
-                                    <Link target="_blank" to={vuln.url}>{vuln.url}</Link>
-                                }
-                            </Td>
-                            <Td
-                                dataLabel={columnNames.published_date}
-                            >
-                                {
-                                    "published_date" in vuln && vuln.published_date.substring(0, 4) !== "1970" ?
-                                        Moment(vuln.published_date).format("D MMMM YYYY") :
-                                        "-"
-                                }
-                            </Td>
-                            <Td
-                                dataLabel={columnNames.modified_date}
-                            >
-                                {
-                                    "modified_date" in vuln && vuln.modified_date.substring(0, 4) !== "1970" ?
-                                        Moment(vuln.modified_date).format("D MMMM YYYY") :
-                                        "-"
-                                }
-                            </Td>
-                        </Tr>
-                    )
-                })}
-            </React.Fragment>
-        )
-    }
-
-    if (isLoading) {
-        return (
-            <PageSection variant={PageSectionVariants.light} isCenterAligned>
-                <Loader/>
-            </PageSection>
-        )
-    } else if (vulns.length === 0 && !error) {
-        return null
-    } else {
-        return (
-            <Table variant={"compact"}>
-                <Thead>
-                    <Tr>
-                        <Th>{columnNames.is_valid}</Th>
-                        <Th width={10}>{columnNames.id}</Th>
-                        <Th width={10}>{columnNames.related_vulns}</Th>
-                        <Th>{columnNames.summary}</Th>
-                        <Th>{columnNames.url}</Th>
-                        <Th width={10}>{columnNames.published_date}</Th>
-                        <Th width={10}>{columnNames.modified_date}</Th>
-                    </Tr>
-                </Thead>
-                <Tbody key={"found-vulnerabilities"}>
-                    {!error
-                        ? <RenderRows/>
-                        :
-                        <Tr>
-                            <Td colSpan={Object.keys(columnNames).length}>
-                                <Bullseye>
-                                    <EmptyState variant={EmptyStateVariant.sm}>
-                                        <EmptyStateIcon icon={SearchIcon}/>
-                                        <Title headingLevel="h2" size="lg">
-                                            No results found
-                                        </Title>
-                                    </EmptyState>
-                                </Bullseye>
-                            </Td>
-                        </Tr>
-                    }
-
-                </Tbody>
-            </Table>
-        )
-    }
 }
 
 
