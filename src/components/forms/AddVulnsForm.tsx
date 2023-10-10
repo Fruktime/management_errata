@@ -20,12 +20,6 @@ import React from "react";
 import {
     Modal,
     ModalVariant,
-    Form,
-    FormGroup,
-    TextArea,
-    FormHelperText,
-    HelperText,
-    HelperTextItem,
     Button,
     Bullseye,
     EmptyState,
@@ -51,6 +45,7 @@ import {List, ListItem} from "@patternfly/react-core/components";
 import {IVulns} from "../../models/IErrata";
 import {toJS} from "mobx";
 import {observer} from "mobx-react";
+import AddVulnsAsList from "./AddVulnsAsList";
 
 interface AddVulnsFormProps {
     listAddedVulns: IVulns[];
@@ -73,11 +68,6 @@ interface RenderFoundVulnsProps {
     isLoading: boolean;
     /** Error message to API */
     error: string;
-}
-
-interface AddAsListProps {
-    setVulns: React.Dispatch<React.SetStateAction<string[]>>
-    onClick: () => void;
 }
 
 
@@ -212,70 +202,7 @@ const RenderFoundVulns: React.FunctionComponent<RenderFoundVulnsProps> = (
 }
 
 
-const AddAsList: React.FunctionComponent<AddAsListProps> = ({setVulns, onClick}): React.ReactElement => {
-    const [value, setValue] = React.useState("");
-    const [validated, setValidated] = React.useState<"success" | "warning" | "error" | "default">("default");
-
-    const defaultHelperText = "Enter a list of vulnerabilities separated by spaces, commas, or line breaks."
-    const [helperText, setHelperText] = React.useState(defaultHelperText);
-
-    const validateText = (value: string) => {
-        const reSplit = /[\s,\n ]+/;
-        const reValue = /\s*(^CVE-\d{4}-\d{4,}$|^BDU:\d{4}-\d{5}$|^\d+$)\s*/
-        const valueList = value.split(reSplit)
-        const newValueList = valueList.filter(element => element.match(reValue))
-        const invalidValueList = valueList.filter(element => !element.match(reValue) && element !== "")
-        if (invalidValueList.length > 0) {
-            setValidated("error");
-            setHelperText(`${invalidValueList.join(", ")}: invalid vulnerabilities`);
-        } else if (newValueList.length > 0) {
-            setVulns(newValueList)
-            setValidated("success");
-            setHelperText("");
-        } else {
-            setValidated("default");
-            setHelperText(defaultHelperText);
-        }
-
-    }
-
-    const handleTextAreaChange = (value: string) => {
-        setValue(value);
-        validateText(value);
-    };
-
-    return (
-        <React.Fragment>
-            <Form>
-                <FormGroup label="Paste list of vulnerabilities:" type="string" fieldId="selection">
-                    <TextArea
-                        value={value}
-                        style={{minHeight: "10rem"}}
-                        onChange={(_event, value) => handleTextAreaChange(value)}
-                        isRequired
-                        validated={validated}
-                        aria-label="invalid text area example"
-                    />
-                    <FormHelperText>
-                        <HelperText>
-                            <HelperTextItem variant={validated}>{helperText}</HelperTextItem>
-                        </HelperText>
-                    </FormHelperText>
-                </FormGroup>
-                <FormGroup>
-                    <Button
-                        onClick={onClick} variant="primary" size="sm"
-                        isDisabled={validated !== "success"}>
-                        Check vulnerabilities
-                    </Button>
-                </FormGroup>
-            </Form>
-        </React.Fragment>
-    )
-}
-
-
-function AddVulnsForm(
+const AddVulnsForm: React.FunctionComponent<AddVulnsFormProps> = (
     {
         listAddedVulns,
         setListAddedVulns,
@@ -283,7 +210,8 @@ function AddVulnsForm(
         handleToggle,
         title,
         ariaLabel
-    }: AddVulnsFormProps): React.ReactElement {
+    }
+): React.ReactElement => {
     // list of found vulnerabilities
     const [foundVulns, setFoundVulns] = React.useState<IVulns[]>([]);
     // list of not found vulnerabilities
@@ -344,7 +272,7 @@ function AddVulnsForm(
                     <div className={styles.wizardInnerWrap}>
                         <WizardBody>
                             <React.Fragment>
-                                <AddAsList setVulns={setVulnIds} onClick={checkVulnsClick}/>
+                                <AddVulnsAsList setVulns={setVulnIds} onClick={checkVulnsClick}/>
                                 <RenderFoundVulns
                                     vulns={foundVulns}
                                     notFoundVulns={notFoundVulns}
