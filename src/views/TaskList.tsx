@@ -40,7 +40,7 @@ import Loader from "../components/Loader";
 import {FilterIcon, SearchIcon} from "@patternfly/react-icons";
 import Moment from "moment/moment";
 import ToolbarDropdown, {DropdownItem} from "../components/UI/ToolbarDropdown";
-import {vulnLabelColor, smartSplit} from "../utils";
+import {smartSplit} from "../utils";
 import {generatePath, Link, useNavigate} from "react-router-dom";
 import {Paginator} from "../components/Paginator";
 import paginatorStore from "../stores/paginatorStore";
@@ -124,7 +124,7 @@ const TaskList: React.FunctionComponent = (): React.ReactElement => {
                 <LabelGroup className={"pf-u-pt-sm pf-u-pb-sm"} numLabels={20} defaultIsOpen={false}>
                     {data[columnKey].map((vuln, vulnIndex) => {
                             return (
-                                <VulnLabel vuln_id={vuln.id} />
+                                <VulnLabel key={`${data.task_id}-${vuln.id}`} vuln_id={vuln.id} />
                             )
                         }
                     )}
