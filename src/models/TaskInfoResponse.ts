@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import {IVulnerabilities} from "./IVulnerabilities";
 
-interface ISubtasks {
+export interface ISubtasks {
     /** Subtask ID */
     subtask_id: number;
     /** Subtask type */
@@ -45,7 +45,9 @@ interface ISubtasks {
     chlog_evr: string;
     /** Errata ID */
     errata_id: string;
-    /** Time and date of creation errata */
+    /** Is errata discarded. */
+    is_discarded: boolean;
+    /** Time and date of creation errata. */
     eh_created: string;
     /** Time and date of updating errata */
     eh_update: string;

@@ -24,10 +24,6 @@ import {
     Text,
     CardBody,
     Card,
-    EmptyState,
-    EmptyStateIcon,
-    Title,
-    EmptyStateVariant,
     DescriptionList,
     DescriptionListGroup,
     DescriptionListTerm,
@@ -40,12 +36,13 @@ import {
     Icon,
     CardTitle,
 } from "@patternfly/react-core";
-import {TFetch, useFetching} from "../hooks/useFetching";
-import api from "../http/api";
-import {routes} from "../routes/api-routes";
 import {generatePath, Link, useParams} from "react-router-dom";
-import {AddCircleOIcon, EditIcon, SearchIcon} from "@patternfly/react-icons";
-import {ITaskInfo} from "../models/TaskInfoResponse";
+import {
+    AddCircleOIcon,
+    EditIcon,
+    MinusCircleIcon,
+} from "@patternfly/react-icons";
+import {ISubtasks} from "../models/TaskInfoResponse";
 import Loader from "../components/Loader";
 import Moment from "moment/moment";
 import {ExpandableRowContent, Table, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
@@ -53,24 +50,36 @@ import {IVulnerabilities} from "../models/IVulnerabilities";
 import {siteRoutes} from "../routes/routes";
 import {constants} from "../misc";
 import VulnLabel from "../components/VulnLabel";
+import CreateTaskErrata from "../components/forms/CreateTaskErrata";
+import taskInfoStore from "../stores/taskInfoStore";
+import {observer} from "mobx-react";
+import NotFound from "./NotFound";
 
-function TaskInfo() {
-    const [info, setInfo] = React.useState<ITaskInfo>();
-    const {taskId} = useParams();
-
-    const task: TFetch = useFetching(async () => {
-        const response = await api.get(`${routes.taskInfo}/${taskId}`);
-        if (response.data) {
-            setInfo(response.data)
-        } else {
-            setInfo(undefined)
-        }
-    })
+const TaskInfo: React.FunctionComponent = () => {
+    const task = taskInfoStore;
+    /** Task ID from URL params. */
+    const {taskId} = useParams<string>();
+    /** The subtask in which Errata are created. */
+    const [changeSubtask, setChangeSubtask] = React.useState<ISubtasks>()
+    /** Modal window for adding a vulnerability to errata. */
+    const [isModalOpen, setIsModalOpen] = React.useState<boolean>(false);
+    /** A flag indicating that errata is created. */
+    const [isCreateErrata, setCreateErrata] = React.useState<boolean>(false)
 
     React.useEffect(() => {
-        task.fetching()
-    }, [])
+        setCreateErrata(false)
+        task.getTaskInfo(taskId).then()
+    }, [isCreateErrata])
 
+    /** Handle modal window toggle */
+    const handleModalToggle = () => {
+        setIsModalOpen(!isModalOpen);
+    };
+
+    const onCreateSubtaskErrata = (subtask: ISubtasks) => {
+        handleModalToggle();
+        setChangeSubtask(subtask)
+    }
 
     const NestedItems = ({data}: {data: IVulnerabilities[] }): React.ReactElement => {
 
@@ -88,48 +97,65 @@ function TaskInfo() {
 
 
     const Subtasks: React.FunctionComponent = (): React.ReactElement | null => {
-        if (info) {
+        const columnNames = {
+            subtask_id: "Subtask #",
+            src_pkg_name: "Package name",
+            pkg_evr: "Package version",
+            errata_id: "Errata ID",
+            vulnerabilities: "Vulnerabilities",
+            eh_created: "Errata created",
+            eh_update: "Errata update",
+        }
+
+        if (task.taskInfo === null) {
+            return null
+        } else {
             return (
                 <Table variant={"compact"} isStickyHeader>
                     <Thead>
                         <Tr>
-                            <Th>Subtask #</Th>
-                            <Th>Package name</Th>
-                            <Th>Package version</Th>
-                            <Th>Errata ID</Th>
-                            <Th width={30}>Vulnerabilities</Th>
-                            <Th>Errata created</Th>
-                            <Th>Errata update</Th>
+                            <Th>{columnNames.subtask_id}</Th>
+                            <Th>{columnNames.src_pkg_name}</Th>
+                            <Th>{columnNames.pkg_evr}</Th>
+                            <Th>{columnNames.errata_id}</Th>
+                            <Th width={30}>{columnNames.vulnerabilities}</Th>
+                            <Th>{columnNames.eh_created}</Th>
+                            <Th>{columnNames.eh_update}</Th>
                             <Th></Th>
                         </Tr>
                     </Thead>
-                    {info.subtasks.map((subtask, subIndex) => {
+                    {task.taskInfo.subtasks.map((subtask, subIndex) => {
                         return (
                             <Tbody key={subtask.subtask_id} isExpanded>
                                 <Tr key={`${subtask.subtask_id}-subtask-info`}>
-                                    <Td dataLabel="Subtask #">{subtask.subtask_id}</Td>
-                                    <Td dataLabel="Package name">
+                                    <Td dataLabel={columnNames.subtask_id}>{subtask.subtask_id}</Td>
+                                    <Td dataLabel={columnNames.src_pkg_name}>
                                         <Link
                                             target={"_blank"}
-                                            to={`${constants.PACKAGES_URL}/${info?.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
+                                            to={`${constants.PACKAGES_URL}/${task.taskInfo?.task_repo}/srpms/${subtask.src_pkg_name}/${subtask.src_pkg_hash}`}
                                         >
                                             {subtask.src_pkg_name}
                                         </Link>
                                     </Td>
-                                    <Td
-                                        dataLabel="Package version">{subtask.src_pkg_version}-{subtask.src_pkg_release}</Td>
-                                    <Td dataLabel="Errata ID">{subtask.errata_id ? subtask.errata_id : "-"}</Td>
-                                    <Td dataLabel="Vulnerabilities">{
+                                    <Td dataLabel={columnNames.pkg_evr}>{subtask.src_pkg_version}-{subtask.src_pkg_release}</Td>
+                                    <Td dataLabel={columnNames.errata_id}>
+                                        {subtask.errata_id ?
+                                            <React.Fragment>
+                                                {subtask.is_discarded ? <MinusCircleIcon color={"red"}/> : undefined}
+                                                {subtask.errata_id}
+                                            </React.Fragment> : "-"}
+                                    </Td>
+                                    <Td dataLabel={columnNames.vulnerabilities}>{
                                         subtask.vulnerabilities.length > 0
                                             ?
                                             <NestedItems data={subtask.vulnerabilities} />
                                             :
                                             "-"
                                     }</Td>
-                                    <Td dataLabel="Errata created">
+                                    <Td dataLabel={columnNames.eh_created}>
                                         {subtask.eh_created.substring(0, 4) !== "1970" ? Moment(subtask.eh_created).format('D MMMM YYYY, h:mm a'): "-"}
                                     </Td>
-                                    <Td dataLabel="Errata update">
+                                    <Td dataLabel={columnNames.eh_update}>
                                         {subtask.eh_update.substring(0, 4) !== "1970" ? Moment(subtask.eh_update).format('D MMMM YYYY, h:mm a'): "-"}
                                     </Td>
                                     <Td isActionCell>
@@ -155,6 +181,7 @@ function TaskInfo() {
                                                         variant="plain"
                                                         id="with-create-errata-button"
                                                         aria-label="create errata button"
+                                                        onClick={() => onCreateSubtaskErrata(subtask)}
                                                     >
                                                         <Icon size="md">
                                                             <AddCircleOIcon />
@@ -182,13 +209,11 @@ function TaskInfo() {
                     })}
                 </Table>
             )
-        } else {
-            return null
         }
     }
 
 
-    const RenderInformation: React.FunctionComponent = (): React.ReactElement => {
+    const RenderInformation: React.FunctionComponent = observer((): React.ReactElement => {
         if (task.isLoading) {
             return (
                 <PageSection isCenterAligned>
@@ -199,44 +224,33 @@ function TaskInfo() {
                     </Card>
                 </PageSection>
             )
-        } else if (task.error) {
+        } else if (task.error || task.taskInfo === null) {
             return (
-                <PageSection isCenterAligned>
-                    <Card>
-                        <CardBody>
-                            <EmptyState variant={EmptyStateVariant.lg}>
-                                <EmptyStateIcon icon={SearchIcon}/>
-                                <Title headingLevel="h2" size="lg">
-                                    No results found
-                                </Title>
-                            </EmptyState>
-                        </CardBody>
-                    </Card>
-                </PageSection>
+                <NotFound/>
             )
         } else {
             return (
                 <React.Fragment>
                     <PageSection variant={PageSectionVariants.light} isWidthLimited>
                         <TextContent>
-                            <Text component="h1">Task #{info?.task_id} for {info?.task_repo} by <Link
+                            <Text component="h1">Task #{task.taskInfo.task_id} for {task.taskInfo.task_repo} by <Link
                                 target={"_blank"}
-                                to={`${constants.PACKAGES_URL}/${info?.task_repo}/maintainers/${info?.task_owner}/`}>{info?.task_owner}</Link></Text>
+                                to={`${constants.PACKAGES_URL}/${task.taskInfo.task_repo}/maintainers/${task.taskInfo.task_owner}/`}>{task.taskInfo.task_owner}</Link></Text>
                         </TextContent>
                         <DescriptionList className="pf-v5-u-mt-md" isCompact isHorizontal isFluid>
                             <DescriptionListGroup>
                                 <DescriptionListTerm>State</DescriptionListTerm>
                                 <DescriptionListDescription><Label
-                                    color="green">{info?.task_state}</Label></DescriptionListDescription>
+                                    color="green">{task.taskInfo.task_state}</Label></DescriptionListDescription>
                             </DescriptionListGroup>
                             <DescriptionListGroup>
                                 <DescriptionListTerm>Build time</DescriptionListTerm>
-                                <DescriptionListDescription>{Moment(info?.task_changed).format('D MMMM YYYY, h:mm:ss a')}</DescriptionListDescription>
+                                <DescriptionListDescription>{Moment(task.taskInfo.task_changed).format('D MMMM YYYY, h:mm:ss a')}</DescriptionListDescription>
                             </DescriptionListGroup>
-                            {info?.task_message ?
+                            {task.taskInfo.task_message ?
                                 <DescriptionListGroup>
                                     <DescriptionListTerm>Message</DescriptionListTerm>
-                                    <DescriptionListDescription>{info?.task_message}</DescriptionListDescription>
+                                    <DescriptionListDescription>{task.taskInfo.task_message}</DescriptionListDescription>
                                 </DescriptionListGroup>
                                 : undefined
                             }
@@ -250,13 +264,24 @@ function TaskInfo() {
             )
         }
 
-    }
+    })
 
     return (
         <React.Fragment>
             <RenderInformation/>
+            { task.taskInfo && changeSubtask ?
+                <CreateTaskErrata
+                    isOpen={isModalOpen}
+                    task={task.taskInfo}
+                    subtask={changeSubtask}
+                    handleToggle={handleModalToggle}
+                    setSave={setCreateErrata}
+                />
+                :
+                undefined
+            }
         </React.Fragment>
     )
 }
 
-export default TaskInfo;
+export default observer(TaskInfo);
