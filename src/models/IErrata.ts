@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export interface IErrataReferences {
     /** Reference type */
-    type: "Errata" | "vuln" | "bug";
+    type: "errata" | "vuln" | "bug";
     /** Reference ID */
     link: string;
 }
