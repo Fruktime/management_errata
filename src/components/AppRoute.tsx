@@ -21,7 +21,7 @@ import {AuthContext} from "../context/AuthProvide";
 import Header from "./Header";
 import {Route, Routes, Navigate, useNavigate, useLocation} from "react-router-dom";
 import {Page} from "@patternfly/react-core";
-import {privateRoutes, publicRoutes, siteRoutes} from "../routes/routes";
+import {privateRoutes, publicRoutes} from "../routes/routes";
 import {observer} from "mobx-react";
 import Sidebar from "./Sidebar";
 import {IUser} from "../models/IUser";
@@ -35,14 +35,14 @@ const AppRouter: React.FunctionComponent = () => {
     const mainContainerId = "main-content";
     
     React.useEffect(() => {
-        if (location.pathname !== siteRoutes.login) {
-            if (localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)) {
-                auth.checkAuth()
+        if (localStorage.getItem(`${process.env.REACT_APP_ACCESS_TOKEN_KEY}`)) {
+            auth.checkAuth()
+            if (location.pathname !== "/login") {
                 navigate(location)
-            } else {
-                auth.setAuth(false)
-                auth.setUser({} as IUser)
             }
+        } else {
+            auth.setAuth(false)
+            auth.setUser({} as IUser)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
