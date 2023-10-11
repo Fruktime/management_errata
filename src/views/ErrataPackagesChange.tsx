@@ -294,6 +294,12 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                                             undefined
                                         }
                                         <DescriptionListGroup>
+                                            <DescriptionListTerm>Repository:</DescriptionListTerm>
+                                            <DescriptionListDescription>
+                                                {errata.errataInfo.pkgset_name}
+                                            </DescriptionListDescription>
+                                        </DescriptionListGroup>
+                                        <DescriptionListGroup>
                                             <DescriptionListTerm>Package name:</DescriptionListTerm>
                                             <DescriptionListDescription>
                                                 <Link
