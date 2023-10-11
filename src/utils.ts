@@ -1,4 +1,4 @@
-/*
+/**
 Management Erratas
 Copyright (C) 2021-2023  BaseALT Ltd
 
@@ -16,7 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {IErrataReferences} from "./models/IErrataReferences";
+
+import {IErrataReferences} from "./models/IErrata";
 
 /** Color types for the Label component */
 type TLabelColors = (
