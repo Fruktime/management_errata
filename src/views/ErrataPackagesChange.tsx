@@ -45,8 +45,6 @@ import {
     Alert,
     AlertGroup,
     AlertActionCloseButton,
-    TextArea,
-    FormHelperText
 } from "@patternfly/react-core";
 import {generatePath, Link, useNavigate, useParams} from "react-router-dom";
 import {CheckCircleIcon, ExclamationCircleIcon} from "@patternfly/react-icons";
@@ -62,10 +60,13 @@ import {AuthContext} from "../context/AuthProvide";
 import errataStore from "../stores/errataStore";
 import {IVulns} from "../models/IErrata";
 import {observer} from "mobx-react";
+import ReasonForm from "../components/forms/ReasonForm";
+import reasonStore from "../stores/reasonStore";
 
 const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => {
     const {auth} = React.useContext(AuthContext);
     const errata = errataStore
+    const reason = reasonStore
 
     /**
      * Returns an imperative method for changing the location. Used by <Link>s,
@@ -92,13 +93,6 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
     /** Modal window for adding a vulnerability to errata. */
     const [isSaveModalOpen, setSaveModalOpen] = React.useState<boolean>(false);
 
-    /** Errata change reason. */
-    // const [reasonErrata, setReasonErrata] = React.useState<string>("");
-
-    const [validationStatuses, setValidationStatuses] = React.useState<"default" | "error" | "warning" | "success">("default");
-
-    const [helperText, setHelperText] = React.useState<string>("");
-
 
     /** Table column names. */
     const columnNames = {
@@ -117,22 +111,22 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
 
     const handleDiscardModalToggle = () => {
         setDiscardModalOpen(!isDiscardModalOpen);
-        handleReasonErrataChange("");
-    }
+        reason.handleReasonChange("");
+    };
 
     const handleSaveModalToggle = () => {
         setSaveModalOpen(!isSaveModalOpen);
-        handleReasonErrataChange("");
-    }
+        reason.handleReasonChange("");
+    };
 
     React.useEffect(() => {
         errata.getErrata(errataId).then();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [errataId])
+    }, [errataId]);
 
     React.useEffect(() => {
         setSearchVulns(errata.errataVulns)
-    }, [errata.errataVulns])
+    }, [errata.errataVulns]);
 
     React.useEffect(() => {
         if (errata.message) {
@@ -143,7 +137,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [errata.message])
+    }, [errata.message]);
 
     /** Check the checkbox to remove the vulnerability. */
     const setSelected = (vuln: IVulns, isSelecting:boolean = true) => {
@@ -152,7 +146,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
     };
 
     /** Check if the checkbox to remove the vulnerability is checked. */
-    const isVulnSelected = (vuln: IVulns) => errata.removedVulns.includes(vuln.id)
+    const isVulnSelected = (vuln: IVulns) => errata.removedVulns.includes(vuln.id);
 
     /** find vulnerability */
     const onSearchInputChange = (value: string) => {
@@ -182,62 +176,21 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                 </Alert>
             ]
         );
-    }
-
-    const validateReason = (value: string) => {
-        if (value.length !== 0 && value.length < 10) {
-            setValidationStatuses("error");
-            setHelperText("The message cannot be less than 10 characters.");
-        } else if (value.length >= 10) {
-            setValidationStatuses("success");
-            setHelperText("");
-        } else {
-            setValidationStatuses("default");
-            setHelperText("");
-        }
-
-    }
-
-    const handleReasonErrataChange = (value: string) => {
-        validateReason(value);
-        errata.setReasonChangeErrata(value);
     };
 
     const saveErrata = () => {
-        errata.putErrata(auth.user).then(() => {
+        errata.putErrata(auth.user, reason.reason).then(() => {
             if (errata.updateErrata) {
                 navigate(generatePath(siteRoutes.errataInfo, {errataId: errata.updateErrata}))
             }
         });
         handleSaveModalToggle();
-    }
+    };
 
     const saveDiscardErrata = () => {
-        errata.discardErrata(auth.user).then();
+        errata.discardErrata(auth.user, reason.reason).then();
         handleDiscardModalToggle();
-    }
-
-    const renderReasonFormGroup = (): React.ReactElement => {
-        return (
-            <FormGroup label="Please indicate the reason for the change Errata:" type="string"
-                       fieldId="reasonErrata">
-                <TextArea
-                    value={errata.reasonChangeErrata}
-                    style={{minHeight: "10rem"}}
-                    onChange={(_event, value) => handleReasonErrataChange(value)}
-                    isRequired
-                    resizeOrientation="vertical"
-                    validated={validationStatuses}
-                    aria-label="reason for change errata"
-                />
-                <FormHelperText>
-                    <HelperText>
-                        <HelperTextItem variant={validationStatuses}>{helperText}</HelperTextItem>
-                    </HelperText>
-                </FormHelperText>
-            </FormGroup>
-        )
-    }
+    };
 
     /** Table body rendering component */
     const RenderRows: React.FunctionComponent = observer((): React.ReactElement => {
@@ -294,7 +247,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                 })}
             </React.Fragment>
         )
-    })
+    });
 
     if (errata.isLoading) {
         return (
@@ -514,7 +467,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                         <Button
                             key="confirm"
                             variant="primary"
-                            isDisabled={validationStatuses !== "success" || !errata.errataInfo}
+                            isDisabled={reason.status !== "success" || !errata.errataInfo}
                             onClick={saveDiscardErrata}
                         >
                             Yes
@@ -524,7 +477,11 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                         </Button>
                     ]}
                 >
-                    {renderReasonFormGroup()}
+                    <ReasonForm
+                        label={"Please indicate the reason for the change Errata:"}
+                        ariaLabel={"reason for change errata"}
+                        style={{minHeight: "10rem"}}
+                    />
                 </Modal>
 
                 <Modal
@@ -533,7 +490,7 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                     isOpen={isSaveModalOpen}
                     onClose={handleSaveModalToggle}
                     actions={[
-                        <Button key="confirm" variant="primary" isDisabled={validationStatuses !== "success" || !errata.errataInfo}
+                        <Button key="confirm" variant="primary" isDisabled={reason.status !== "success" || !errata.errataInfo}
                                 onClick={saveErrata}>
                             Yes
                         </Button>,
@@ -542,7 +499,11 @@ const ErrataPackagesChange: React.FunctionComponent = (): React.ReactElement => 
                         </Button>
                     ]}
                 >
-                    {renderReasonFormGroup()}
+                    <ReasonForm
+                        label={"Please indicate the reason for the change Errata:"}
+                        ariaLabel={"reason for change errata"}
+                        style={{minHeight: "10rem"}}
+                    />
                 </Modal>
             </React.Fragment>
         );

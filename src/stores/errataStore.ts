@@ -31,7 +31,6 @@ class ErrataStore {
     errataVulns: IVulns[] = []
     updateErrata: string = ""
     removedVulns: string[] = []
-    reasonChangeErrata: string = ""
     statusCode: HttpStatusCode = 200
     message: string = ""
     validationMessage: string = ""
@@ -69,10 +68,6 @@ class ErrataStore {
 
     setError(error: string) {
         this.error = error;
-    }
-
-    setReasonChangeErrata = (message: string) => {
-        this.reasonChangeErrata = message;
     }
 
     setTypeMessage = (type: "success" | "danger" | "warning" | "info" | "custom") => {
@@ -138,12 +133,12 @@ class ErrataStore {
     }
 
     /** Update errata version with new contents. */
-    async  putErrata(user: IUser) {
+    async  putErrata(user: IUser, reason: string) {
         if (this.errataInfo) {
             const errata: IErrataManage = {
                 user: user.nickname,
                 action: constants.ERRATA_CHANGE_ACTION_UPDATE,
-                reason: this.reasonChangeErrata,
+                reason: reason,
                 errata: this.updateReferences(this.errataInfo)
             }
             try {
@@ -166,12 +161,12 @@ class ErrataStore {
     }
 
     /** Discard errata record. */
-    async discardErrata(user: IUser) {
+    async discardErrata(user: IUser, reason: string) {
         if (this.errataInfo) {
             const errata: IErrataManage = {
                 user: user.nickname,
                 action: constants.ERRATA_CHANGE_ACTION_DISCARD,
-                reason: this.reasonChangeErrata,
+                reason: reason,
                 errata: this.errataInfo
             }
             try {
